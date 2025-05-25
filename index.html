@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+
+    <style>
+
+      .dragon1 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -358px;
+        margin-left: -322px;
+        width: 645px;
+        height: 716px;
+        /* background-color: blue; */
+        background-image: url("/dragon_1.webp");
+      }
+      .dragon2 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -305px;
+        margin-left: -260px;
+        width: 520px;
+        height: 610px;
+        /* background-color: green; */
+        background-image: url("/dragon_2.webp");
+      }
+      .dragon3 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -284px;
+        margin-left: -258px;
+        width: 517px;
+        height: 569px;
+        /* background-color: palegoldenrod; */
+        background-image: url("/dragon_3.webp");
+      }
+      .dragon4 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -287px;
+        margin-left: -330px;
+        width: 660px;
+        height: 574px;
+        /* background-color: palegreen; */
+        background-image: url("/dragon_4.webp");
+      }
+      #root{
+        width: 1920px;
+        height: 1080px;
+        /* width: 500px;
+        height: 500px; */
+        position: relative;
+      }
+      .debugWrapper{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: palegoldenrod
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+
+
+    </div>
+    
+    <div id="debugWrapper" class="debugWrapper">
+      <div class="dragon dragon1"></div>
+      <div class="dragon dragon2"></div>
+      <div class="test">
+        <div class="dragon dragon3"></div>
+        <div class="dragon dragon4"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      window.addEventListener('load', () => {
+        kitDebg({
+          targetSelector: '#debugWrapper',
+        })
+      })
+    </script>
+  </body>
+</html>
