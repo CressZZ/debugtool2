@@ -13,7 +13,7 @@ export type KitDebgOptions = {
 
 export function kitDebg({targetSelector, background, extraTargetSelectors, excludeTargetSelector}: KitDebgOptions) {
 
-  const target = document.querySelector('#root');
+  const target = document.querySelector('#kitDebgRoot');
 
   createRoot(target!).render(
     <StrictMode>

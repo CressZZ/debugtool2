@@ -1,7 +1,11 @@
 import { createContext, useReducer, type Dispatch } from "react";
 import { produce } from "immer";
+import type { ReactNode } from "react";
 
-export type Element = {
+// --- 타입 정의 ---
+export type ElementId = string;
+
+export type DebugElement = {
   id: ElementId;
   tagName: string;
   className: string[];
@@ -23,52 +27,72 @@ export type Element = {
     opacity: string;
     display: string;
   };
-}
+};
 
-export type ElementId = string;
-export type ElementMap = Record<ElementId, Element>;
+export type ElementMap = Record<ElementId, DebugElement>;
 
 export type ElementTreeState = {
   elementMap: ElementMap;
-  rootElementId: ElementId;
-}
+  rootElementId: ElementId[];
+};
 
 type ElementTreeAction =
-  | { type: "SET_ELEMENT_MAP"; payload: { elementMap: ElementMap, rootElementId: ElementId } };
+  | { type: "SET_ELEMENT_MAP"; payload: { elementMap: ElementMap; rootElementId: ElementId[] } }
+  | { type: "TOGGLE_SELECTED_ELEMENT"; payload: { elementId: ElementId } }
+  | { type: "SELECTED_ELEMENT"; payload: { elementId: ElementId } }
+  | { type: "UPDATE_ELEMENT_STYLE"; payload: { elementId: ElementId; style: Partial<DebugElement["style"]> } };
 
+// --- Reducer ---
 const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction): ElementTreeState => {
   return produce(state, (draft) => {
     switch (action.type) {
       case "SET_ELEMENT_MAP":
-        draft.elementMap = action.payload.elementMap;
-        draft.rootElementId = action.payload.rootElementId;
+        draft.elementMap = { ...draft.elementMap, ...action.payload.elementMap };
+        draft.rootElementId = [...draft.rootElementId, ...action.payload.rootElementId];
         break;
+
+      case "TOGGLE_SELECTED_ELEMENT": {
+        const el = draft.elementMap[action.payload.elementId];
+        el.selected = !el.selected;
+        break;
+      }
+
+      case "SELECTED_ELEMENT": {
+        draft.elementMap[action.payload.elementId].selected = true;
+        break;
+      }
+
+      case "UPDATE_ELEMENT_STYLE": {
+        Object.assign(draft.elementMap[action.payload.elementId].style, action.payload.style);
+        break;
+      }
     }
   });
 };
 
-const ElementTreeContext = createContext<{
-  state: ElementTreeState;
-  dispatch: Dispatch<ElementTreeAction>;
-}>({
-  state: {
-    elementMap: {},
-    rootElementId: '',
-  },
-  dispatch: () => {},
+// --- Context 분리 ---
+const ElementTreeStateContext = createContext<ElementTreeState>({
+  elementMap: {},
+  rootElementId: [],
 });
 
-export const ElementTreeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [state, dispatch] = useReducer(elementTreeReducer, {
+const ElementTreeDispatchContext = createContext<Dispatch<ElementTreeAction>>(() => {});
+
+// --- Provider ---
+export const ElementTreeProvider = ({ children }: { children: ReactNode }) => {
+  const [ElementTree, ElementTreeDispatch] = useReducer(elementTreeReducer, {
     elementMap: {},
-    rootElementId: '',
+    rootElementId: [],
   });
 
   return (
-    <ElementTreeContext.Provider value={{ state, dispatch }}>
-      {children}
-    </ElementTreeContext.Provider>
+    <ElementTreeStateContext.Provider value={ElementTree}>
+      <ElementTreeDispatchContext.Provider value={ElementTreeDispatch}>
+        {children}
+      </ElementTreeDispatchContext.Provider>
+    </ElementTreeStateContext.Provider>
   );
 };
 
-export { ElementTreeContext };
+// --- Export ---
+export { ElementTreeStateContext, ElementTreeDispatchContext };

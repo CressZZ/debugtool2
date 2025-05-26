@@ -1,31 +1,42 @@
-import { useContext, useEffect } from "react";
-import { ElementTreeContext } from "./context/ElementTreeContext";
+import {  useEffect, useRef } from "react";
 import { parseDomToTree } from "./utils/parseDomToTree";
 import type { KitDebgOptions } from "./main";
-
+import { DebugComponentList } from "./component/DebugComponent/DebugComponentList";
+import { useElementTree, useElementTreeDispatch } from "./hooks/useElementTree";
 
 function App({targetSelector, background, extraTargetSelectors, excludeTargetSelector}: KitDebgOptions) {
 
-  console.log(targetSelector, background, extraTargetSelectors, excludeTargetSelector);
-  const { state, dispatch } = useContext(ElementTreeContext);
+  console.log({targetSelector, background, extraTargetSelectors, excludeTargetSelector});
+  const { elementMap, rootElementId } = useElementTree();
+  const ElementTreeDispatch = useElementTreeDispatch();
+
+  const isMounted = useRef(false);
+  
+  useEffect(() => {
+    if (isMounted.current) return;
+    isMounted.current = true;
+    const ParsedElementTree = parseDomToTree(document.querySelector(targetSelector)!);
+    ElementTreeDispatch({ type: "SET_ELEMENT_MAP", payload: { elementMap: ParsedElementTree.elementMap, rootElementId: ParsedElementTree.rootElementId } });
+    console.log('ParsedElementTree', ParsedElementTree);
+  });
+
+
+  // 복제 다한후 숨기기 위해 사용
+  useEffect(() => {
+    if (rootElementId) {
+      const el = document.querySelector(targetSelector) as HTMLElement;
+      if (el) el.style.display = 'none';
+    }
+  }, [rootElementId]);
 
   useEffect(() => {
-    const ElementTree = parseDomToTree(document.querySelector(targetSelector)!);
-    dispatch({ type: "SET_ELEMENT_MAP", payload: { elementMap: ElementTree.elementMap, rootElementId: ElementTree.rootElementId } });
-  }, []);
-
-  useEffect(() => {
-    console.log(state);
-  }, [state]);
+    console.log('elementMap', elementMap);
+  }, [elementMap]);  
 
 
   return (
     <>
-      <div>
-        {/* {Object.values(state.elementMap).map((element) => (
-          <div key={element.id}>{element.tagName}</div>
-        ))} */}
-      </div>
+      <DebugComponentList />
     </>
   )
 }

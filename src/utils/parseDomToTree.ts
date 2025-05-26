@@ -1,8 +1,10 @@
 import { v4 as uidv4 } from 'uuid';
-import type { Element, ElementId, ElementTreeState } from "../context/ElementTreeContext";
+import type { DebugElement, ElementId, ElementTreeState } from "../context/ElementTreeContext";
 
-function createElement(el: HTMLElement, parentId?: string): Element {
-  const id = uidv4().slice(0, 5);
+let count = 0;
+
+function createElement(el: HTMLElement, parentId?: string): DebugElement {
+  const id = count++ + '_' + uidv4().slice(0, 5);
   const computed = getComputedStyle(el);
 
   return {
@@ -15,8 +17,8 @@ function createElement(el: HTMLElement, parentId?: string): Element {
     style: {
       marginTop: computed.marginTop,
       marginLeft: computed.marginLeft,
-      top: el.style.top,
-      left: el.style.left,
+      top: computed.top,
+      left: computed.left,
       position: computed.position,
       background: computed.background,
       backgroundImage: computed.backgroundImage,
@@ -31,7 +33,7 @@ function createElement(el: HTMLElement, parentId?: string): Element {
 }
 
 export function parseDomToTree(rootEl: HTMLElement): ElementTreeState {
-  const elementMap: Record<string, Element> = {};
+  const elementMap: Record<string, DebugElement> = {};
   const rootElementId = traverse(rootEl);
 
   // 트리 순회 하여 elementMap 채우기
@@ -51,5 +53,5 @@ export function parseDomToTree(rootEl: HTMLElement): ElementTreeState {
 
     return element.id;
   }
-  return { elementMap,rootElementId };
+  return { elementMap, rootElementId: [rootElementId] };
 }
