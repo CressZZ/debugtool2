@@ -26,6 +26,8 @@ export type DebugElement = {
     height: string;
     opacity: string;
     display: string;
+    transformTranslateX:string;
+    transformTranslateY:string;
   };
 };
 
@@ -40,7 +42,8 @@ type ElementTreeAction =
   | { type: "SET_ELEMENT_MAP"; payload: { elementMap: ElementMap; rootElementId: ElementId[] } }
   | { type: "TOGGLE_SELECTED_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "SELECTED_ELEMENT"; payload: { elementId: ElementId } }
-  | { type: "UPDATE_ELEMENT_STYLE"; payload: { elementId: ElementId; style: Partial<DebugElement["style"]> } };
+  | { type: "UPDATE_ELEMENT_STYLE"; payload: { elementId: ElementId; style: Partial<DebugElement["style"]> } }
+  | { type: "UPDATE_ELEMENT_POSITION"; payload: { elementId: ElementId; x: number, y: number } };
 
 // --- Reducer ---
 const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction): ElementTreeState => {
@@ -66,6 +69,7 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
         Object.assign(draft.elementMap[action.payload.elementId].style, action.payload.style);
         break;
       }
+
     }
   });
 };

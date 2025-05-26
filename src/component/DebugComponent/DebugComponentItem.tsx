@@ -29,6 +29,9 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
     elementId: element.id,
     marginLeft,
     marginTop,
+    transformX: element.style.transformTranslateX,
+    transformY: element.style.transformTranslateY,
+    positionType: element.positionType,
   });
 
   const handleClick = (e: React.MouseEvent) => {
@@ -50,6 +53,7 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
         marginTop, marginLeft,
         outline,
         cursor: "move",
+        transform: `translate(${element.style.transformTranslateX}, ${element.style.transformTranslateY})`,
       }}
       data-id={element.id}
       data-class-name={element.className.join(" ")}

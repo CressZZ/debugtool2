@@ -5,9 +5,12 @@ type UseDraggableOptions = {
   elementId: string;
   marginLeft: string;
   marginTop: string;
+  transformX: string;
+  transformY: string;
+  positionType: 'margin' | 'transform';
 };
 
-export function useDraggableElement({ elementId, marginLeft, marginTop }: UseDraggableOptions) {
+export function useDraggableElement({ elementId, marginLeft, marginTop, transformX, transformY, positionType }: UseDraggableOptions) {
   const dispatch = useElementTreeDispatch();
   const elementMap= useElementTree();
 
@@ -16,6 +19,8 @@ export function useDraggableElement({ elementId, marginLeft, marginTop }: UseDra
   const startY = useRef(0);
   const startMarginLeft = useRef(0);
   const startMarginTop = useRef(0);
+  const startTransformX = useRef(0);
+  const startTransformY = useRef(0);
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging.current) return;
@@ -28,8 +33,10 @@ export function useDraggableElement({ elementId, marginLeft, marginTop }: UseDra
       payload: {
         elementId,
         style: {
-          marginLeft: `${startMarginLeft.current + dx}px`,
-          marginTop: `${startMarginTop.current + dy}px`,
+          marginLeft: positionType === 'margin' ? `${startMarginLeft.current + dx}px` : `${startMarginLeft.current}px`,
+          marginTop: positionType === 'margin' ? `${startMarginTop.current + dy}px` : `${startMarginTop.current}px`,
+          transformTranslateX: positionType === 'transform' ? `${startTransformX.current + dx}px` : `${startTransformX.current}px`,
+          transformTranslateY: positionType === 'transform' ? `${startTransformY.current + dy}px` : `${startTransformY.current}px`,
         },
       },
     });
@@ -53,6 +60,8 @@ export function useDraggableElement({ elementId, marginLeft, marginTop }: UseDra
     startY.current = e.clientY;
     startMarginLeft.current = parseFloat(marginLeft || "0");
     startMarginTop.current = parseFloat(marginTop || "0");
+    startTransformX.current = parseFloat(transformX || "0");
+    startTransformY.current = parseFloat(transformY || "0");
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);

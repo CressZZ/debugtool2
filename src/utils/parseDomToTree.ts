@@ -3,17 +3,29 @@ import type { DebugElement, ElementId, ElementTreeState } from "../context/Eleme
 
 let count = 0;
 
+function parseTranslate(transform: string): { x: string; y: string } {
+  const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+  if (match) {
+    return {
+      x: match[1].trim(),
+      y: match[2].trim(),
+    };
+  }
+  return { x: '0px', y: '0px' };
+}
+
+
 function createElement(el: HTMLElement, parentId?: string): DebugElement {
   const id = count++ + '_' + uidv4().slice(0, 5);
   const computed = getComputedStyle(el);
-
+  const { x, y } = parseTranslate(computed.transform);
   return {
     id,
     tagName: el.tagName.toLowerCase(),
     className: Array.from(el.classList),
     parentId,
     selected: false,
-    positionType: 'margin',
+    positionType: 'transform',
     style: {
       marginTop: computed.marginTop,
       marginLeft: computed.marginLeft,
@@ -27,6 +39,9 @@ function createElement(el: HTMLElement, parentId?: string): DebugElement {
       height: computed.height,
       opacity: computed.opacity,
       display: computed.display,
+      transformTranslateX: x,
+      transformTranslateY: y,
+
     },
     children: [],
   };
