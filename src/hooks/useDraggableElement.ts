@@ -7,6 +7,7 @@ type movePosition = {
   marginTop: number;
   transformX: number;
   transformY: number;
+  positionType: 'margin' | 'transform';
 }
 
 export function getMovePosition(startMarginLeft: number, startMarginTop: number, startTransformX: number, startTransformY: number, dx: number, dy: number, positionType: 'margin' | 'transform') {
