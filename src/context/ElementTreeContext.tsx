@@ -43,6 +43,7 @@ type ElementTreeAction =
   | { type: "TOGGLE_SELECTED_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "SELECTED_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "UPDATE_ELEMENT_STYLE"; payload: { elementId: ElementId; style: Partial<DebugElement["style"]> } }
+  | { type: "UPDATE_MULTIPLE_ELEMENTS_STYLE"; payload: Record<ElementId, Partial<DebugElement["style"]>> }
   | { type: "UPDATE_ELEMENT_POSITION"; payload: { elementId: ElementId; x: number, y: number } };
 
 // --- Reducer ---
@@ -54,14 +55,20 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
         draft.rootElementId = [...draft.rootElementId, ...action.payload.rootElementId];
         break;
 
+      // 안쓸수도 있지
       case "TOGGLE_SELECTED_ELEMENT": {
+        if(draft.rootElementId.includes(action.payload.elementId)) return;
+
         const el = draft.elementMap[action.payload.elementId];
         el.selected = !el.selected;
         break;
       }
 
       case "SELECTED_ELEMENT": {
+        if(draft.rootElementId.includes(action.payload.elementId)) return;
+
         draft.elementMap[action.payload.elementId].selected = true;
+        
         break;
       }
 
@@ -70,6 +77,12 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
         break;
       }
 
+      case "UPDATE_MULTIPLE_ELEMENTS_STYLE": {
+        for (const [elementId, style] of Object.entries(action.payload)) {
+          Object.assign(draft.elementMap[elementId].style, style);
+        }
+        break;
+      }
     }
   });
 };

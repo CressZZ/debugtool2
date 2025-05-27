@@ -25,14 +25,7 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
 
   const dispatch = useElementTreeDispatch();
   
-  const { onMouseDown } = useDraggableElement({
-    elementId: element.id,
-    marginLeft,
-    marginTop,
-    transformX: element.style.transformTranslateX,
-    transformY: element.style.transformTranslateY,
-    positionType: element.positionType,
-  });
+  const { onMouseDown } = useDraggableElement({ elementId: element.id, });
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();

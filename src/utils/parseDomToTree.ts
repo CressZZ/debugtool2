@@ -25,7 +25,8 @@ function createElement(el: HTMLElement, parentId?: string): DebugElement {
     className: Array.from(el.classList),
     parentId,
     selected: false,
-    positionType: 'transform',
+    // positionType: 'transform',
+    positionType: 'margin',
     style: {
       marginTop: computed.marginTop,
       marginLeft: computed.marginLeft,
