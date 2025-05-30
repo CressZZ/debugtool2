@@ -3,6 +3,8 @@ import type { DebugElement, ElementId, ElementTreeState } from "../context/Eleme
 
 let count = 0;
 
+const noStaticPosition = ['absolute', 'fixed', 'relative'];
+
 function parseTranslate(transform: string): { x: string; y: string } {
   const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
   if (match) {
@@ -15,7 +17,7 @@ function parseTranslate(transform: string): { x: string; y: string } {
 }
 
 
-function createElement(el: HTMLElement, parentId?: string): DebugElement {
+function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: string, isRoot?: boolean}): DebugElement {
   const id = count++ + '_' + uidv4().slice(0, 5);
   const computed = getComputedStyle(el);
   const { x, y } = parseTranslate(computed.transform);
@@ -30,19 +32,18 @@ function createElement(el: HTMLElement, parentId?: string): DebugElement {
     style: {
       marginTop: computed.marginTop,
       marginLeft: computed.marginLeft,
-      top: computed.top,
-      left: computed.left,
+      top: isRoot ? '0' : '50%',
+      left: isRoot ? '0' : '50%',
       position: computed.position,
       background: computed.background,
       backgroundImage: computed.backgroundImage,
       zIndex: computed.zIndex,
-      width: computed.width,
-      height: computed.height,
+      width: isRoot ? '100%' : computed.width,
+      height: isRoot ? '100%' : computed.height,
       opacity: computed.opacity,
       display: computed.display,
-      transformTranslateX: x,
-      transformTranslateY: y,
-
+      transformTranslateX: noStaticPosition.includes(computed.position) ? x : '',
+      transformTranslateY: noStaticPosition.includes(computed.position) ? y : '',
     },
     children: [],
   };
@@ -50,23 +51,23 @@ function createElement(el: HTMLElement, parentId?: string): DebugElement {
 
 export function parseDomToTree(rootEl: HTMLElement): ElementTreeState {
   const elementMap: Record<string, DebugElement> = {};
-  const rootElementId = traverse(rootEl);
+  const rootElementId = traverse({el: rootEl, isRoot: true});
 
   // 트리 순회 하여 elementMap 채우기
-  function traverse(el: HTMLElement, parentId?: string): ElementId {
+  function traverse({el, parentId, isRoot}: {el: HTMLElement, parentId?: string, isRoot?: boolean}): ElementId {
 
     // elementNode 생성
-    const element = createElement(el, parentId);
+    const element = createElement({el, parentId, isRoot});
     elementMap[element.id] = element;
 
     // 자식 요소 순회
     Array.from(el.children).forEach((childEl) => {
       if (childEl instanceof HTMLElement) {
-        const childId = traverse(childEl, element.id);
+        const childId = traverse({el: childEl, parentId: element.id, isRoot: false});
         element.children.push(childId);
       }
     });
-
+    // 아이디 반환
     return element.id;
   }
   return { elementMap, rootElementId: [rootElementId] };
