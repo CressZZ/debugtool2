@@ -1,7 +1,7 @@
 import {  type ReactNode } from "react";
 import {  type DebugElement } from "../../context/ElementTreeContext";
 import { useElementTree } from "../../hooks/useElementTree";
-import { useDraggableElement } from "../../hooks/useDraggableElement";
+import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
 
 export function DebugComponentItem({ element }: { element: DebugElement }) {
   const { elementMap } = useElementTree();
@@ -38,7 +38,7 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
     opacity, outline, backgroundColor,
   } = currentStyle;
 
-  const { onMouseDown } = useDraggableElement({ elementId: element.id, });
+  const { onMouseDown } = useMouseEventDebugComponentItem({ elementId: element.id, });
 
   return (
     <div

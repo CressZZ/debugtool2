@@ -3,9 +3,10 @@ import { parseDomToTree } from "./utils/parseDomToTree";
 import type { KitDebgOptions } from "./main";
 import { DebugComponent } from "./component/DebugComponent";
 import { useElementTree, useElementTreeDispatch } from "./hooks/useElementTree";
-import { useKeyEvent } from "./hooks/useKeyEvent";
+import { useKeyEventWindow } from "./hooks/useKeyEventWindow";
 import { useDisplayNoneOriginEl } from "./hooks/useDisplayNoneOriginEl";
 import { DebugBackground } from "./component/DebugBackground";
+import { DebugControlPanel } from "./component/DebugControlPanel";
 
 function App({targetSelector, background, extraTargetSelectors, excludeTargetSelector}: KitDebgOptions) {
 
@@ -32,7 +33,7 @@ function App({targetSelector, background, extraTargetSelectors, excludeTargetSel
   useDisplayNoneOriginEl(targetSelector);
 
   // 키바인딩
-  useKeyEvent();
+  useKeyEventWindow();
 
   useEffect(() => {
     console.log('elementMap', elementMap);
@@ -43,6 +44,7 @@ function App({targetSelector, background, extraTargetSelectors, excludeTargetSel
     <>
       <DebugBackground backgroundImage={background} />
       <DebugComponent />
+      <DebugControlPanel />
     </>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useElementTree, useElementTreeDispatch, useSelectedElement } from "./useElementTree";
 
-import { getCurrentPositions, useStartPositions } from "./useMovePosition";
+import { getCurrentPositions, useStartPositions } from "./useStartPositions";
 import type { DebugElement } from "../context/ElementTreeContext";
 
 export type movePosition = {
@@ -11,7 +11,7 @@ export type movePosition = {
   transformY: number;
   positionType: 'margin' | 'transform';
 }
-export function useDraggableElement({ elementId }: { elementId: string }) {
+export function useMouseEventDebugComponentItem({ elementId }: { elementId: string }) {
   const dispatch = useElementTreeDispatch();
   const { elementMap } = useElementTree();
   const selectedElement = useSelectedElement();

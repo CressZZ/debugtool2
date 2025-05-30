@@ -2,10 +2,10 @@ import { useEffect, useRef, type Dispatch } from "react";
 import { useElementTreeDispatch, useSelectedElement } from "./useElementTree";
 
 import type { DebugElement, ElementTreeAction, } from "../context/ElementTreeContext";
-import { getCurrentPositions, useStartPositions } from "./useMovePosition";
-import type { movePosition } from "./useDraggableElement";
+import { getCurrentPositions, useStartPositions } from "./useStartPositions";
+import type { movePosition } from "./useMouseEventDebugComponentItem";
 
-export function useKeyEvent() {
+export function useKeyEventWindow() {
   const dispatch = useElementTreeDispatch();
   const selectedElement = useSelectedElement();
   const { startPositions, setStartPositions } = useStartPositions();
