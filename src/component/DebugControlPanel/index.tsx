@@ -41,19 +41,14 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
   };
 
   const handleSelectElement = (element: DebugElement) => {
-    flushSync(() => {
-   
+    // flushSync(() => {
       dispatch({
         type: "SELECT_ONLY_ELEMENT",
         payload: { elementId: element.id },
       });
-    });
-
-
+    // });
   };
   
-
-
   const renderElementTree = (element: DebugElement) => {
     return (
       <div
@@ -76,7 +71,7 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
             background: element.selected ? "#008080" : "transparent",
             color: element.selected ? "#fff" : "#333",
           }}
-          onClick={() => handleSelectElement(element)}
+          onMouseDown={() => handleSelectElement(element)}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLDivElement).style.background = element.selected
               ? "#008080"

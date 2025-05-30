@@ -139,8 +139,21 @@ export function useKeyEventWindow() {
       });
       return;
     }
-
+  
+    if((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "z" || e.key === "Z" || e.key === "ㅈ")) {
+      dispatch({
+        type: "REDO",
+      });
+      return;
+    }
  
+    if((e.metaKey || e.ctrlKey) && (e.key === "z" || e.key === "Z" || e.key === "ㅈ")) {
+      dispatch({
+        type: "UNDO",
+      });
+      return;
+    }
+  
   };
 
   // 키 바인딩은 빈 deps (ref로 안전하게 최신 selectedElement 사용)

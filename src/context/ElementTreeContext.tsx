@@ -37,6 +37,10 @@ export type ElementMap = Record<ElementId, DebugElement>;
 export type ElementTreeState = {
   elementMap: ElementMap;
   rootElementId: ElementId[];
+  history: {
+    past: ElementMap[];
+    future: ElementMap[];
+  };
 };
 
 export type ElementTreeAction =
@@ -50,94 +54,132 @@ export type ElementTreeAction =
   | { type: "UPDATE_MULTIPLE_ELEMENTS_STYLE"; payload: Record<ElementId, Partial<DebugElement["style"]>> }
   | { type: "UPDATE_ELEMENT_POSITION"; payload: { elementId: ElementId; x: number, y: number } }
   | { type: "TOGGLE_HIDDEN_ELEMENT"; payload: { elementId: ElementId } }
-  | { type: "TOGGLE_HIDDEN_ALL_ELEMENT"; };
+  | { type: "TOGGLE_HIDDEN_ALL_ELEMENT"; }
+  | { type: "UNDO" }
+  | { type: "REDO" };
 
 // --- Reducer ---
 const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction): ElementTreeState => {
   return produce(state, (draft) => {
+
+    const saveToHistory = () => {
+      draft.history.past.push(JSON.parse(JSON.stringify(draft.elementMap)));
+    
+      // MAX_HISTORY 초과하면 오래된 걸 앞에서 제거
+      if (draft.history.past.length > 200) {
+        draft.history.past.shift();
+      }
+    
+      draft.history.future = []; // redo는 새 변경시 초기화
+    };
     switch (action.type) {
-      case "SET_ELEMENT_MAP":
+
+      case "SET_ELEMENT_MAP": {
+        saveToHistory();
         draft.elementMap = { ...draft.elementMap, ...action.payload.elementMap };
         draft.rootElementId = [...draft.rootElementId, ...action.payload.rootElementId];
         break;
+      }
 
-      // 안쓸수도 있지
       case "TOGGLE_SELECTED_ELEMENT": {
-        if(draft.rootElementId.includes(action.payload.elementId)) return;
-
-        const el = draft.elementMap[action.payload.elementId];
-        el.selected = !el.selected;
+        if (draft.rootElementId.includes(action.payload.elementId)) return;
+        saveToHistory();
+        draft.elementMap[action.payload.elementId].selected = !draft.elementMap[action.payload.elementId].selected;
         break;
       }
 
       case "SELECTED_ELEMENT": {
-        if(draft.rootElementId.includes(action.payload.elementId)) return;
-
+        if (draft.rootElementId.includes(action.payload.elementId)) return;
+        saveToHistory();
         draft.elementMap[action.payload.elementId].selected = true;
-        
+        break;
+      }
+
+      case "UNSELECT_ALL_ELEMENT": {
+        saveToHistory();
+        Object.values(draft.elementMap).forEach(element => {
+          element.selected = false;
+        });
+        break;
+      }
+
+      case "UNSELECT_ELEMENT": {
+        saveToHistory();
+        draft.elementMap[action.payload.elementId].selected = false;
+        break;
+      }
+
+      case "SELECT_ONLY_ELEMENT": {
+        if (draft.rootElementId.includes(action.payload.elementId)) return;
+        saveToHistory();
+        Object.values(draft.elementMap).forEach(el => {
+          el.selected = false;
+        });
+        draft.elementMap[action.payload.elementId].selected = true;
         break;
       }
 
       case "UPDATE_ELEMENT_STYLE": {
+        saveToHistory();
         Object.assign(draft.elementMap[action.payload.elementId].style, action.payload.style);
         break;
       }
 
       case "UPDATE_MULTIPLE_ELEMENTS_STYLE": {
+        saveToHistory();
         for (const [elementId, style] of Object.entries(action.payload)) {
           Object.assign(draft.elementMap[elementId].style, style);
         }
         break;
       }
 
-      case "UNSELECT_ALL_ELEMENT": {
-        Object.values(draft.elementMap).forEach(element => {
-          element.selected = false;
-        });
-        
-        break;
-      }
-      case "UNSELECT_ELEMENT": {
-        draft.elementMap[action.payload.elementId].selected = false;
-        break;
-      }
-
-      case "SELECT_ONLY_ELEMENT": {
-        if(draft.rootElementId.includes(action.payload.elementId)) return;
-
-        Object.values(draft.elementMap).forEach(el => {
-          el.selected = false;
-        });
-        draft.elementMap[action.payload.elementId].selected = true;
-        break;
-    }
-
       case "TOGGLE_HIDDEN_ELEMENT": {
         if (draft.rootElementId.includes(action.payload.elementId)) return;
+        saveToHistory();
 
         const parentElement = draft.elementMap[action.payload.elementId];
         const newHiddenState = !parentElement.hidden;
-      
+
         const toggleRecursive = (elementId: string, hidden: boolean) => {
           const el = draft.elementMap[elementId];
           el.hidden = hidden;
-      
           el.children.forEach(childId => {
             toggleRecursive(childId, hidden);
           });
         };
-      
+
         toggleRecursive(action.payload.elementId, newHiddenState);
         break;
-      
       }
 
       case "TOGGLE_HIDDEN_ALL_ELEMENT": {
+        saveToHistory();
+
         const isHidden = Object.values(draft.elementMap).some(element => element.hidden);
         Object.values(draft.elementMap).forEach(element => {
-          if(draft.rootElementId.includes(element.id)) return;
+          if (draft.rootElementId.includes(element.id)) return;
           element.hidden = !isHidden;
         });
+        break;
+      }
+
+      // --- UNDO ---
+      case "UNDO": {
+        if (draft.history.past.length > 1) {
+          const prev = draft.history.past.pop()!;
+          draft.history.future.push(JSON.parse(JSON.stringify(draft.elementMap))); // 현재 상태 future로 push
+          draft.elementMap = prev;
+        }
+        break;
+      }
+
+      // --- REDO ---
+      case "REDO": {
+        if (draft.history.future.length > 0) {
+          const next = draft.history.future.pop()!;
+          draft.history.past.push(JSON.parse(JSON.stringify(draft.elementMap))); // 현재 상태 past로 push
+          draft.elementMap = next;
+        }
         break;
       }
     }
@@ -157,14 +199,17 @@ export const ElementTreeProvider = ({ children }: { children: ReactNode }) => {
   const [ElementTree, ElementTreeDispatch] = useReducer(elementTreeReducer, {
     elementMap: {},
     rootElementId: [],
+    history: {
+      past: [],
+      future: [],
+    },
   });
-
   return (
     <ElementTreeStateContext.Provider value={ElementTree}>
-      <ElementTreeDispatchContext.Provider value={ElementTreeDispatch}>
-        {children}
-      </ElementTreeDispatchContext.Provider>
-    </ElementTreeStateContext.Provider>
+    <ElementTreeDispatchContext.Provider value={ElementTreeDispatch}>
+      {children}
+    </ElementTreeDispatchContext.Provider>
+  </ElementTreeStateContext.Provider>
   );
 };
 
