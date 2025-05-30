@@ -11,6 +11,7 @@ export type DebugElement = {
   className: string[];
   parentId?: string;
   selected: boolean;
+  hidden: boolean;
   children: ElementId[];
   positionType: 'margin' | 'transform';
   style: {
@@ -47,7 +48,9 @@ export type ElementTreeAction =
 
   | { type: "UPDATE_ELEMENT_STYLE"; payload: { elementId: ElementId; style: Partial<DebugElement["style"]> } }
   | { type: "UPDATE_MULTIPLE_ELEMENTS_STYLE"; payload: Record<ElementId, Partial<DebugElement["style"]>> }
-  | { type: "UPDATE_ELEMENT_POSITION"; payload: { elementId: ElementId; x: number, y: number } };
+  | { type: "UPDATE_ELEMENT_POSITION"; payload: { elementId: ElementId; x: number, y: number } }
+  | { type: "TOGGLE_HIDDEN_ELEMENT"; payload: { elementId: ElementId } }
+  | { type: "TOGGLE_HIDDEN_ALL_ELEMENT"; };
 
 // --- Reducer ---
 const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction): ElementTreeState => {
@@ -97,6 +100,17 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
       case "UNSELECT_ELEMENT": {
         draft.elementMap[action.payload.elementId].selected = false;
         break;
+      }
+
+      case "TOGGLE_HIDDEN_ELEMENT": {
+        draft.elementMap[action.payload.elementId].hidden = !draft.elementMap[action.payload.elementId].hidden;
+        break;
+      }
+
+      case "TOGGLE_HIDDEN_ALL_ELEMENT": {
+        Object.values(draft.elementMap).forEach(element => {
+          element.hidden = !element.hidden;
+        });
       }
     }
   });

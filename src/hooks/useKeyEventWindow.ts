@@ -121,6 +121,20 @@ export function useKeyEventWindow() {
         });
       });
     }
+
+    if (e.key === "h") {
+      selectedElementRef.current.forEach((element) => {
+        dispatch({
+          type: "TOGGLE_HIDDEN_ELEMENT",
+          payload: { elementId: element.id },
+        });
+      });
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === "h") {
+        dispatch({
+          type: "TOGGLE_HIDDEN_ALL_ELEMENT",
+        });
+    }
   };
 
   // 키 바인딩은 빈 deps (ref로 안전하게 최신 selectedElement 사용)

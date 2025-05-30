@@ -55,20 +55,39 @@ export function DebugControlPanel() {
     return (
       <div
         key={element.id}
-        className="pl-3 mb-1 border-l border-dashed border-gray-300"
+        style={{
+          paddingLeft: "12px",
+          marginBottom: "4px",
+          borderLeft: "1px dashed #ccc",
+        }}
       >
         <div
-          className={`cursor-pointer px-2 py-1 rounded text-sm flex items-center gap-2 transition
-            ${
-              element.selected
-                ? "bg-teal-600 text-white"
-                : "hover:bg-gray-100 text-gray-800"
-            }`}
+          style={{
+            cursor: "pointer",
+            padding: "4px 8px",
+            borderRadius: "4px",
+            fontSize: "13px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: element.selected ? "#008080" : "transparent",
+            color: element.selected ? "#fff" : "#333",
+            transition: "background 0.2s, color 0.2s",
+          }}
           onClick={() => handleSelectElement(element)}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLDivElement).style.background = element.selected
+              ? "#008080"
+              : "#eee";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLDivElement).style.background = element.selected
+              ? "#008080"
+              : "transparent";
+          }}
         >
-          <span className="font-semibold">{element.tagName}</span>
-          {/* <span className="text-xs text-gray-400">#{element.id}</span> */}
-          <span className="text-xs text-gray-400">
+          <span style={{ fontWeight: "600" }}>{element.tagName}</span>
+          <span style={{ fontSize: "11px", color: "#888" }}>
             #{element.className.join(" ")}
           </span>
         </div>
@@ -86,22 +105,54 @@ export function DebugControlPanel() {
   return (
     <div
       ref={panelRef}
-      className="fixed z-[9999] w-[280px] max-h-[80vh] overflow-y-auto rounded-lg border border-gray-400 bg-gray-50 shadow-lg select-none"
       style={{
+        position: "fixed",
+        zIndex: 9999,
+        width: "280px",
+        maxHeight: "80vh",
+        overflowY: "auto",
+        borderRadius: "8px",
+        border: "1px solid #bbb",
+        background: "#fafafa",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+        userSelect: "none",
         top: position.y,
         left: position.x,
       }}
     >
       <div
-        className="bg-gray-800 text-white px-3 py-2 flex justify-between items-center rounded-t-lg cursor-move"
+        style={{
+          background: "#444",
+          color: "#fff",
+          padding: "8px 12px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderTopLeftRadius: "8px",
+          borderTopRightRadius: "8px",
+          cursor: "move",
+        }}
         onMouseDown={handleMouseDown}
       >
-        <span className="text-[14px] font-bold tracking-wide">Layer Panel</span>
+        <span
+          style={{
+            fontSize: "14px",
+            fontWeight: "bold",
+            letterSpacing: "0.5px",
+          }}
+        >
+          Layer Panel
+        </span>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="text-white text-lg transform transition-transform"
           style={{
+            background: "transparent",
+            border: "none",
+            color: "#fff",
+            fontSize: "16px",
+            cursor: "pointer",
             transform: isCollapsed ? "rotate(-90deg)" : "none",
+            transition: "transform 0.2s",
           }}
         >
           ▶
@@ -110,10 +161,13 @@ export function DebugControlPanel() {
 
       {!isCollapsed && (
         <div
-          className="p-3 text-sm"
+          style={{
+            padding: "12px",
+            fontSize: "13px",
+          }}
           onWheel={(e) => {
-            e.stopPropagation(); // 🚀 wheel 이벤트 버블링 차단
-            // e.preventDefault(); // 🚀 필요하면 스크롤 자체도 막기
+            e.stopPropagation();
+            // e.preventDefault();
             // console.log("panel wheel", e.deltaY);
           }}
         >

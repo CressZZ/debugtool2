@@ -40,8 +40,8 @@ function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: stri
       zIndex: computed.zIndex,
       width: isRoot ? '100%' : computed.width,
       height: isRoot ? '100%' : computed.height,
-      opacity: computed.opacity,
-      display: computed.display,
+      opacity: '1',
+      display: 'block',
       transformTranslateX: noStaticPosition.includes(computed.position) ? x : '',
       transformTranslateY: noStaticPosition.includes(computed.position) ? y : '',
     },
@@ -49,7 +49,7 @@ function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: stri
   };
 }
 
-export function parseDomToTree(rootEl: HTMLElement): ElementTreeState {
+export function parseDomToTree(rootEl: HTMLElement, excludeTargetSelector: string[] = []): ElementTreeState {
   const elementMap: Record<string, DebugElement> = {};
 
   // 처음에만 isRoot
@@ -65,10 +65,17 @@ export function parseDomToTree(rootEl: HTMLElement): ElementTreeState {
     // 자식 요소 순회
     Array.from(el.children).forEach((childEl) => {
       if (childEl instanceof HTMLElement) {
-        const childId = traverse({el: childEl, parentId: element.id, isRoot: false});
+    
+        // 🚀 exclude 처리
+        if (excludeTargetSelector.some(selector => childEl.matches(selector))) {
+          return; // skip this element
+        }
+    
+        const childId = traverse({ el: childEl, parentId: element.id, isRoot: false });
         element.children.push(childId);
       }
     });
+    
     
     // 아이디 반환
     return element.id;

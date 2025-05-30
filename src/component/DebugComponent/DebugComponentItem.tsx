@@ -20,16 +20,31 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
   const defaultStyle = {
     outline: "2px solid red",
     backgroundColor: 'transparent',
+    pointerEvents: 'auto',
   }
 
   const selectedStyle = {
     outline: "2px solid green",
-    opacity: .5,
-    zIndex: 1000,
+    opacity: '0.5',
+    zIndex: '1000',
     backgroundColor: 'teal',
   }
 
-  const currentStyle = element.selected ? { ...element.style, ...selectedStyle } : { ...element.style, ...defaultStyle };
+  const hiddenStyle = {
+    opacity: '0',
+    pointerEvents: 'none',
+    zIndex: '0',
+  }
+
+  let currentStyle = { ...element.style, ...defaultStyle };
+
+  if (element.selected) {
+    currentStyle = { ...currentStyle, ...selectedStyle };
+  }
+
+  if (element.hidden) {
+    currentStyle = { ...currentStyle, ...hiddenStyle };
+  }
 
   const {
     position, top, left, width, height,
