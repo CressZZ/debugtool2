@@ -38,7 +38,7 @@ export type ElementTreeState = {
   rootElementId: ElementId[];
 };
 
-type ElementTreeAction =
+export type ElementTreeAction =
   | { type: "SET_ELEMENT_MAP"; payload: { elementMap: ElementMap; rootElementId: ElementId[] } }
   | { type: "TOGGLE_SELECTED_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "SELECTED_ELEMENT"; payload: { elementId: ElementId } }

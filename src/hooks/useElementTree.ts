@@ -9,13 +9,21 @@ export function useElementTreeDispatch() {
   return useContext(ElementTreeDispatchContext);
 }
 
+// 유틸
+export function getSelectedElements(elementMap: Record<string, DebugElement>) {
+  return Object.values(elementMap).filter(e => e.selected);
+}
+
+// 훅
 export function useSelectedElement() {
   const { elementMap } = useElementTree();
-  const [selectedElement, setSelectedElement] = useState<DebugElement[]>(Object.values(elementMap).filter(e => e.selected));
+  const [selectedElements, setSelectedElements] = useState<DebugElement[]>(() =>
+    getSelectedElements(elementMap)
+  );
 
   useEffect(() => {
-    setSelectedElement(Object.values(elementMap).filter(e => e.selected));
+    setSelectedElements(getSelectedElements(elementMap));
   }, [elementMap]);
 
-  return selectedElement
+  return selectedElements;
 }
