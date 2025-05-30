@@ -19,12 +19,14 @@ export function DebugComponentItem({ element }: { element: DebugElement }) {
 export function DebugComponentBox({ element, children }: { element: DebugElement; children: ReactNode }) {
   const defaultStyle = {
     outline: "2px solid red",
+    backgroundColor: 'transparent',
   }
 
   const selectedStyle = {
-    outline: "2px solid teal",
+    outline: "2px solid green",
     opacity: .5,
     zIndex: 1000,
+    backgroundColor: 'teal',
   }
 
   const currentStyle = element.selected ? { ...element.style, ...selectedStyle } : { ...element.style, ...defaultStyle };
@@ -33,7 +35,7 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
     position, top, left, width, height,
     background, backgroundImage, zIndex,
     display, marginTop, marginLeft,
-    opacity, outline,
+    opacity, outline, backgroundColor,
   } = currentStyle;
 
   const { onMouseDown } = useDraggableElement({ elementId: element.id, });
@@ -48,6 +50,7 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
         opacity, display,
         marginTop, marginLeft,
         outline,
+        backgroundColor,
         cursor: "move",
         transform: `translate(${element.style.transformTranslateX}, ${element.style.transformTranslateY})`,
       }}
