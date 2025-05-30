@@ -43,6 +43,8 @@ export type ElementTreeAction =
   | { type: "TOGGLE_SELECTED_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "SELECTED_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "UNSELECT_ELEMENT"; payload: { elementId: ElementId } }
+  | { type: "UNSELECT_ALL_ELEMENT"; payload: { elementId: ElementId } }
+
   | { type: "UPDATE_ELEMENT_STYLE"; payload: { elementId: ElementId; style: Partial<DebugElement["style"]> } }
   | { type: "UPDATE_MULTIPLE_ELEMENTS_STYLE"; payload: Record<ElementId, Partial<DebugElement["style"]>> }
   | { type: "UPDATE_ELEMENT_POSITION"; payload: { elementId: ElementId; x: number, y: number } };
@@ -85,6 +87,13 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
         break;
       }
 
+      case "UNSELECT_ALL_ELEMENT": {
+        Object.values(draft.elementMap).forEach(element => {
+          element.selected = false;
+        });
+        
+        break;
+      }
       case "UNSELECT_ELEMENT": {
         draft.elementMap[action.payload.elementId].selected = false;
         break;

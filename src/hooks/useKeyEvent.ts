@@ -5,7 +5,7 @@ import type { DebugElement, ElementTreeAction, } from "../context/ElementTreeCon
 import { getCurrentPositions, useStartPositions } from "./useMovePosition";
 import type { movePosition } from "./useDraggableElement";
 
-export function useKeybinding() {
+export function useKeyEvent() {
   const dispatch = useElementTreeDispatch();
   const selectedElement = useSelectedElement();
   const { startPositions, setStartPositions } = useStartPositions();

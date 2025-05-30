@@ -2,7 +2,7 @@ import { DebugComponentItem } from "./DebugComponentItem";
 import { useElementTree } from "../../hooks/useElementTree";
 
 
-export function DebugComponentList() {
+export function DebugComponent() {
   const ElementTree = useElementTree();
   
   const { rootElementId, elementMap } = ElementTree;

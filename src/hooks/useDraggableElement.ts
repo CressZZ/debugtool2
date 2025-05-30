@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useElementTree, useElementTreeDispatch, useSelectedElement } from "./useElementTree";
 
 import { getCurrentPositions, useStartPositions } from "./useMovePosition";
+import type { DebugElement } from "../context/ElementTreeContext";
 
 export type movePosition = {
   marginLeft: number;
@@ -26,8 +27,24 @@ export function useDraggableElement({ elementId }: { elementId: string }) {
     selectedElementRef.current = selectedElement;
   }, [selectedElement]);
 
-  const onMouseDown = (e: React.MouseEvent) => {
+  const onMouseDown = (e: React.MouseEvent, element: DebugElement) => {
     e.stopPropagation();
+
+    const isMetaPressed = e.metaKey;
+    const isCtrlPressed = e.ctrlKey;
+    // const isShiftPressed = e.shiftKey;
+
+    if(isMetaPressed || isCtrlPressed){
+      dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
+    }else{
+      if(!element.selected){
+        dispatch({ type: "UNSELECT_ALL_ELEMENT", payload: { elementId: element.id } });
+        dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
+      }else{
+        //
+      }
+    }
+
 
     if (!elementMap[elementId].selected) return;
 

@@ -1,10 +1,11 @@
 import {  useEffect, useRef } from "react";
 import { parseDomToTree } from "./utils/parseDomToTree";
 import type { KitDebgOptions } from "./main";
-import { DebugComponentList } from "./component/DebugComponent/DebugComponentList";
+import { DebugComponent } from "./component/DebugComponent";
 import { useElementTree, useElementTreeDispatch } from "./hooks/useElementTree";
-import { useKeybinding } from "./hooks/useKeybinding";
+import { useKeyEvent } from "./hooks/useKeyEvent";
 import { useDisplayNoneOriginEl } from "./hooks/useDisplayNoneOriginEl";
+import { DebugBackground } from "./component/DebugBackground";
 
 function App({targetSelector, background, extraTargetSelectors, excludeTargetSelector}: KitDebgOptions) {
 
@@ -31,7 +32,7 @@ function App({targetSelector, background, extraTargetSelectors, excludeTargetSel
   useDisplayNoneOriginEl(targetSelector);
 
   // 키바인딩
-  useKeybinding();
+  useKeyEvent();
 
   useEffect(() => {
     console.log('elementMap', elementMap);
@@ -40,7 +41,8 @@ function App({targetSelector, background, extraTargetSelectors, excludeTargetSel
 
   return (
     <>
-      <DebugComponentList />
+      <DebugBackground backgroundImage={background} />
+      <DebugComponent />
     </>
   )
 }
