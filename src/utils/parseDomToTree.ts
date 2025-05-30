@@ -24,12 +24,14 @@ function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: stri
   return {
     id,
     tagName: el.tagName.toLowerCase(),
+    hidden: false,
     className: Array.from(el.classList),
     parentId,
     selected: false,
-    // positionType: 'transform',
+    // positionType: 'transform', // 사용안함
     positionType: 'margin',
     style: {
+      pointerEvents: 'auto',
       marginTop: computed.marginTop,
       marginLeft: computed.marginLeft,
       top: isRoot ? '0' : '50%',

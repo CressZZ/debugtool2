@@ -53,11 +53,9 @@ function App({
     });
   });
 
-  // 복제 다한후 숨기기 위해 사용
-  // useDisplayNoneOriginEl(targetSelector);
 
   // 키바인딩
-  useKeyEventWindow();
+  useKeyEventWindow({targetSelector});
 
   useKitRootStyle();
 
@@ -67,7 +65,7 @@ function App({
     if (target) {
       const handleWheel = (e: WheelEvent) => {
         e.stopPropagation();
-        console.log("kitDebgRoot wheel", e);
+        // console.log("kitDebgRoot wheel", e);
       };
 
       target.addEventListener("wheel", handleWheel, { passive: false });

@@ -1,14 +1,34 @@
 import { useEffect, useRef, type Dispatch } from "react";
-import { useElementTreeDispatch, useSelectedElement } from "./useElementTree";
+import {
+  useElementTree,
+  useElementTreeDispatch,
+  useSelectedElement,
+} from "./useElementTree";
 
-import type { DebugElement, ElementTreeAction, } from "../context/ElementTreeContext";
-import { getCurrentPositions, useStartPositions } from "./useStartPositions";
+import type {
+  DebugElement,
+  ElementTreeAction,
+} from "../context/ElementTreeContext";
+import {
+  getCurrentPositions,
+  getPositionScss,
+  useStartPositions,
+} from "./useStartPositions";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
 
-export function useKeyEventWindow() {
+export function useKeyEventWindow({targetSelector}: {targetSelector: string}) {
   const dispatch = useElementTreeDispatch();
   const selectedElement = useSelectedElement();
   const { startPositions, setStartPositions } = useStartPositions();
+
+  const { elementMap, rootElementId } = useElementTree();
+  const elementMapRef = useRef(elementMap);
+  const rootElementIdRef = useRef(rootElementId);
+
+  useEffect(() => {
+    elementMapRef.current = elementMap;
+    rootElementIdRef.current = rootElementId;
+  }, [elementMap, rootElementId]);
 
   // 최신 selectedElement 유지
   const selectedElementRef = useRef(selectedElement);
@@ -17,16 +37,24 @@ export function useKeyEventWindow() {
     selectedElementRef.current = selectedElement;
   }, [selectedElement]);
 
-  // 현재 포지션 초기화
-  useEffect(() => {
-    setStartPositions(selectedElement);
-  }, [selectedElement]);
-
   const handleKeydown = (e: KeyboardEvent) => {
-    console.log("handleKeydown", e);
+    // console.log("handleKeydown", e);
+    if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const positionScss = getPositionScss(
+        elementMapRef.current,
+        rootElementIdRef.current,
+        targetSelector
+      );
+      console.log(positionScss);
+    }
 
     if ((e.metaKey || e.ctrlKey) && e.key === "ArrowUp") {
-      console.log("meta/ctrl + ArrowUp");
+      // console.log("meta/ctrl + ArrowUp");
+      setStartPositions(selectedElementRef.current);
+
       onHandleArrowUpDown(
         -100,
         selectedElementRef.current,
@@ -37,7 +65,9 @@ export function useKeyEventWindow() {
     }
 
     if ((e.metaKey || e.ctrlKey) && e.key === "ArrowDown") {
-      console.log("meta/ctrl + ArrowDown");
+      // console.log("meta/ctrl + ArrowDown");
+      setStartPositions(selectedElementRef.current);
+
       onHandleArrowUpDown(
         100,
         selectedElementRef.current,
@@ -48,7 +78,9 @@ export function useKeyEventWindow() {
     }
 
     if ((e.metaKey || e.ctrlKey) && e.key === "ArrowLeft") {
-      console.log("meta/ctrl + ArrowLeft");
+      // console.log("meta/ctrl + ArrowLeft");
+      setStartPositions(selectedElementRef.current);
+
       onHandleArrowLeftRight(
         -100,
         selectedElementRef.current,
@@ -59,7 +91,9 @@ export function useKeyEventWindow() {
     }
 
     if ((e.metaKey || e.ctrlKey) && e.key === "ArrowRight") {
-      console.log("meta/ctrl + ArrowRight");
+      // console.log("meta/ctrl + ArrowRight");
+      setStartPositions(selectedElementRef.current);
+
       onHandleArrowLeftRight(
         100,
         selectedElementRef.current,
@@ -70,7 +104,9 @@ export function useKeyEventWindow() {
     }
 
     if (e.key === "ArrowUp") {
-      console.log("ArrowUp");
+      // console.log("ArrowUp");
+      setStartPositions(selectedElementRef.current);
+
       onHandleArrowUpDown(
         -1,
         selectedElementRef.current,
@@ -81,7 +117,9 @@ export function useKeyEventWindow() {
     }
 
     if (e.key === "ArrowDown") {
-      console.log("ArrowDown");
+      // console.log("ArrowDown");
+      setStartPositions(selectedElementRef.current);
+
       onHandleArrowUpDown(
         1,
         selectedElementRef.current,
@@ -92,7 +130,9 @@ export function useKeyEventWindow() {
     }
 
     if (e.key === "ArrowLeft") {
-      console.log("ArrowLeft");
+      // console.log("ArrowLeft");
+      setStartPositions(selectedElementRef.current);
+
       onHandleArrowLeftRight(
         -1,
         selectedElementRef.current,
@@ -103,7 +143,9 @@ export function useKeyEventWindow() {
     }
 
     if (e.key === "ArrowRight") {
-      console.log("ArrowRight");
+      // console.log("ArrowRight");
+      setStartPositions(selectedElementRef.current);
+
       onHandleArrowLeftRight(
         1,
         selectedElementRef.current,
@@ -123,7 +165,10 @@ export function useKeyEventWindow() {
       return;
     }
 
-    if ((e.metaKey || e.ctrlKey) && (e.key === "h" || e.key === "H" || e.key === "ㅗ")) {
+    if (
+      (e.metaKey || e.ctrlKey) &&
+      (e.key === "h" || e.key === "H" || e.key === "ㅗ")
+    ) {
       dispatch({
         type: "TOGGLE_HIDDEN_ALL_ELEMENT",
       });
@@ -139,21 +184,27 @@ export function useKeyEventWindow() {
       });
       return;
     }
-  
-    if((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "z" || e.key === "Z" || e.key === "ㅈ")) {
+
+    if (
+      (e.metaKey || e.ctrlKey) &&
+      e.shiftKey &&
+      (e.key === "z" || e.key === "Z" || e.key === "ㅈ")
+    ) {
       dispatch({
         type: "REDO",
       });
       return;
     }
- 
-    if((e.metaKey || e.ctrlKey) && (e.key === "z" || e.key === "Z" || e.key === "ㅈ")) {
+
+    if (
+      (e.metaKey || e.ctrlKey) &&
+      (e.key === "z" || e.key === "Z" || e.key === "ㅈ")
+    ) {
       dispatch({
         type: "UNDO",
       });
       return;
     }
-  
   };
 
   // 키 바인딩은 빈 deps (ref로 안전하게 최신 selectedElement 사용)

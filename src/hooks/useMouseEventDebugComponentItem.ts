@@ -13,7 +13,7 @@ export type movePosition = {
 }
 export function useMouseEventDebugComponentItem({ elementId }: { elementId: string }) {
   const dispatch = useElementTreeDispatch();
-  const { elementMap } = useElementTree();
+  const { elementMap, rootElementId } = useElementTree();
   const selectedElement = useSelectedElement();
 
   const isDragging = useRef(false);
@@ -23,6 +23,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
   const { startPositions, setStartPositions } = useStartPositions();
 
   const selectedElementRef = useRef(selectedElement);
+  
   useEffect(() => {
     selectedElementRef.current = selectedElement;
   }, [selectedElement]);
@@ -30,6 +31,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
   const onMouseDown = (e: React.MouseEvent, element: DebugElement) => {
     e.stopPropagation();
 
+    // console.log("onMouseDown", e);
     const isMetaPressed = e.metaKey;
     const isCtrlPressed = e.ctrlKey;
     // const isShiftPressed = e.shiftKey;
@@ -44,6 +46,9 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
       }
     }
 
+    if(rootElementId.includes(element.id)){
+      dispatch({ type: "UNSELECT_ALL_ELEMENT" });
+    }
 
     if (!elementMap[elementId].selected) return;
 

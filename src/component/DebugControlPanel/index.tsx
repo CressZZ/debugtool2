@@ -1,10 +1,10 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import {
   ElementTreeStateContext,
   ElementTreeDispatchContext,
 } from "../../context/ElementTreeContext";
 import type { DebugElement } from "../../context/ElementTreeContext";
-import { flushSync } from "react-dom";
+
 
 export function DebugControlPanel({ onExit }: { onExit: () => void }) {
   const state = useContext(ElementTreeStateContext);
@@ -40,13 +40,38 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
     window.removeEventListener("mouseup", handleMouseUp);
   };
 
-  const handleSelectElement = (element: DebugElement) => {
+  const handleSelectElement = (e: React.MouseEvent, element: DebugElement) => {
+    const isMetaPressed = e.metaKey;
+    const isCtrlPressed = e.ctrlKey;
+    // if(isMetaPressed || isCtrlPressed){
+    //   dispatch({
+    //     type: "UNSELECT_ALL_ELEMENT",
+    //   });
+    // }
+    if(isMetaPressed || isCtrlPressed){
+      dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
+    }else{
+      if(!element.selected){
+        dispatch({ type: "SELECT_ONLY_ELEMENT", payload: { elementId: element.id } });
+      }else{
+        //
+      }
+    }
     // flushSync(() => {
-      dispatch({
-        type: "SELECT_ONLY_ELEMENT",
-        payload: { elementId: element.id },
-      });
+      // dispatch({
+      //   type: "SELECT_ONLY_ELEMENT",
+      //   payload: { elementId: element.id },
+      // });
+
+      
     // });
+  };
+  
+  const handleChangePositionType = (element: DebugElement, newType: 'margin' | 'transform') => {
+    dispatch({
+      type: 'UPDATE_ELEMENT_POSITION_TYPE',
+      payload: { elementId: element.id, positionType: newType },
+    });
   };
   
   const renderElementTree = (element: DebugElement) => {
@@ -54,52 +79,70 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
       <div
         key={element.id}
         style={{
-          paddingLeft: "12px",
-          marginBottom: "4px",
-          borderLeft: "1px dashed #ccc",
+          paddingLeft: '12px',
+          marginBottom: '4px',
+          borderLeft: '1px dashed #ccc',
         }}
       >
         <div
           style={{
-            cursor: "pointer",
-            padding: "4px 8px",
-            borderRadius: "4px",
-            fontSize: "13px",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            background: element.selected ? "#008080" : "transparent",
-            color: element.selected ? "#fff" : "#333",
+            cursor: 'pointer',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: element.selected ? '#008080' : 'transparent',
+            color: element.selected ? '#fff' : '#333',
           }}
-          onMouseDown={() => handleSelectElement(element)}
+          onMouseDown={(e) => handleSelectElement(e, element)}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLDivElement).style.background = element.selected
-              ? "#008080"
-              : "#eee";
+              ? '#008080'
+              : '#eee';
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLDivElement).style.background = element.selected
-              ? "#008080"
-              : "transparent";
+              ? '#008080'
+              : 'transparent';
           }}
         >
-          <span style={{ fontWeight: "600" }}>{element.tagName}</span>
-          <span style={{ fontSize: "11px", color: "#888" }}>
-            #{element.className.join(" ")}
+          <span style={{ fontWeight: '600' }}>{element.className.join(' ')}</span>
+          <span style={{ fontSize: '11px', color: '#888' }}>
+          {element.tagName}
           </span>
-            {/* Hidden 상태 표시 → 오른쪽 끝으로 정렬 */}
-  <span
-    style={{
-      fontSize: "10px",
-      marginLeft: "auto",
-      color: element.hidden ? "#ff5050" : "#50c878", // 빨강 / 초록
-      fontWeight: "bold",
-    }}
-  >
-    {element.hidden ? "Hidden" : "Visible"}
-  </span>
-
+  
+          {/* Hidden 상태 표시 */}
+          <span
+            style={{
+              fontSize: '10px',
+              marginLeft: 'auto',
+              color: element.hidden ? '#ff5050' : '#50c878',
+              fontWeight: 'bold',
+            }}
+          >
+            {element.hidden ? 'Hidden' : 'Visible'}
+          </span>
+  
+          {/* PositionType 표시 + 선택 */}
+          {/* <select
+            value={element.positionType}
+            onChange={(e) => handleChangePositionType(element, e.target.value as 'margin' | 'transform')}
+            style={{
+              marginLeft: '8px',
+              fontSize: '11px',
+              padding: '2px 4px',
+              borderRadius: '4px',
+            }}
+            onClick={(e) => e.stopPropagation()} // 드래그 방지용
+          >
+            <option value="margin">margin</option>
+            <option value="transform">transform</option>
+          </select> */}
         </div>
+  
+        {/* children 재귀 렌더 */}
         {element.children.map((childId) => {
           const child = state.elementMap[childId];
           if (child) {
@@ -110,7 +153,7 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
       </div>
     );
   };
-
+  
   return (
     <div
       ref={panelRef}

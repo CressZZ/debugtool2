@@ -29,6 +29,7 @@ export type DebugElement = {
     display: string;
     transformTranslateX:string;
     transformTranslateY:string;
+    pointerEvents: string;
   };
 };
 
@@ -55,6 +56,7 @@ export type ElementTreeAction =
   | { type: "UPDATE_ELEMENT_POSITION"; payload: { elementId: ElementId; x: number, y: number } }
   | { type: "TOGGLE_HIDDEN_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "TOGGLE_HIDDEN_ALL_ELEMENT"; }
+  | { type: "UPDATE_ELEMENT_POSITION_TYPE"; payload: { elementId: ElementId; positionType: 'margin' | 'transform' } }
   | { type: "UNDO" }
   | { type: "REDO" };
 
@@ -163,6 +165,15 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
         break;
       }
 
+      case 'UPDATE_ELEMENT_POSITION_TYPE': {
+        const { elementId, positionType } = action.payload;
+        const element = draft.elementMap[elementId];
+        if (element) {
+          element.positionType = positionType;
+        }
+        break;
+      }
+
       // --- UNDO ---
       case "UNDO": {
         if (draft.history.past.length > 1) {
@@ -190,6 +201,10 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
 const ElementTreeStateContext = createContext<ElementTreeState>({
   elementMap: {},
   rootElementId: [],
+  history: {
+    past: [],
+    future: [],
+  },
 });
 
 const ElementTreeDispatchContext = createContext<Dispatch<ElementTreeAction>>(() => {});

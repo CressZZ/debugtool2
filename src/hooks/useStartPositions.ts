@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { DebugElement } from "../context/ElementTreeContext";
+import type { DebugElement, ElementId, ElementMap } from "../context/ElementTreeContext";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
 
 export function useStartPositions() {
@@ -24,7 +24,6 @@ export function useStartPositions() {
   };
 }
 
-
 export function getCurrentPositions(selectedElement: DebugElement[], startPositions: Record<string, movePosition>, dx: number, dy: number) {
   const styles: Record<string, Partial<DebugElement["style"]>> = {};
 
@@ -35,19 +34,69 @@ export function getCurrentPositions(selectedElement: DebugElement[], startPositi
   return styles;
 }
 
-
-
 export function getMovePosition(startPosition: movePosition, dx: number, dy: number, positionType: 'margin' | 'transform') {
   const { marginLeft, marginTop, transformX, transformY } = startPosition;
   if(positionType === 'margin') {
     return {
       marginLeft: `${marginLeft + dx}px`,
       marginTop: `${marginTop + dy}px`,
+      // transformTranslateX: "",
+      // transformTranslateY: "",
     };
   }else{
     return {
       transformTranslateX: `${transformX + dx}px`,
       transformTranslateY: `${transformY + dy}px`,
+      // marginLeft: "",
+      // marginTop: "",
     }
   }
+}
+export function getPositionScss(elementMap: ElementMap, rootElementIds: ElementId[], rootSelector: string) {
+  const lines: string[] = [];
+
+  const makeClassSelector = (element: DebugElement) => {
+    return element.className.length > 0
+      ? `.${element.className.join(".")}`
+      : ""; // 클래스 없는 경우 빈 문자열
+  };
+
+  // 모든 후손을 "flat" 하게 루트 하위로 출력
+  const collectAllDescendants = (element: DebugElement, result: DebugElement[]) => {
+    element.children.forEach(childId => {
+      const child = elementMap[childId];
+      if (child) {
+        result.push(child);
+        collectAllDescendants(child, result); // 재귀
+      }
+    });
+  };
+
+  rootElementIds.forEach(rootId => {
+    const rootElement = elementMap[rootId];
+    if (rootElement) {
+      // 루트 열기
+      lines.push(`${rootSelector} {`);
+
+      // flat list 만들기
+      const flatDescendants: DebugElement[] = [];
+      collectAllDescendants(rootElement, flatDescendants);
+
+      // flat 으로 출력
+      flatDescendants.forEach(child => {
+        const childSelector = makeClassSelector(child);
+        if (childSelector) {
+          lines.push(`  ${childSelector} {`);
+          lines.push(`    margin-top: ${child.style.marginTop};`);
+          lines.push(`    margin-left: ${child.style.marginLeft};`);
+          lines.push(`  }`);
+        }
+      });
+
+      // 루트 닫기
+      lines.push(`}`);
+    }
+  });
+
+  return lines.join("\n");
 }

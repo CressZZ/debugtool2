@@ -20,7 +20,7 @@ export function DebugComponentBox({ element, children, elementMap }: { element: 
   const defaultStyle = {
     outline: "2px solid red",
     backgroundColor: 'transparent',
-    pointerEvents: 'auto',
+    // pointerEvents: 'none',
     opacity: '1',
     zIndex: '1'
   }
@@ -29,8 +29,8 @@ export function DebugComponentBox({ element, children, elementMap }: { element: 
     outline: "2px solid green",
     opacity: '0.8',
     zIndex: '1000',
-    backgroundColor: 'rgba(0, 128, 128, 0.6)', 
-
+    backgroundColor: 'rgba(57, 173, 106, 0.6)', 
+    pointerEvents: 'auto',
   }
 
   const hiddenStyle = {
@@ -43,9 +43,18 @@ export function DebugComponentBox({ element, children, elementMap }: { element: 
     opacity: '0.4',
     pointerEvents: 'none',
     // zIndex: '1000',
-    outline: "2px solid orange",
+    outline: "2px solid rgba(218, 222, 2)",
 
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(218, 222, 2, 0.6)', 
+
+  }
+
+  const childSelectedStyle = {
+    outline: "2px solid rgba(91, 138, 138)",
+    opacity: '0.8',
+    zIndex: '1000',
+    backgroundColor: 'rgba(0, 245, 245, 0.6)', 
+
   }
 
   let currentStyle = { ...element.style, ...defaultStyle };
@@ -62,10 +71,15 @@ export function DebugComponentBox({ element, children, elementMap }: { element: 
     }
   }
 
+if(element.children?.some(childId => elementMap[childId].selected)) {
+    if(element.parentId) {
+      currentStyle = { ...currentStyle, ...childSelectedStyle };
+
+    }
+  }
   if (element.hidden) {
     currentStyle = { ...currentStyle, ...hiddenStyle };
   } 
-
   // if (element.children?.some(childId => elementMap[childId].selected)) {
   //   if(!element.parentId) return;
   //   currentStyle = { ...currentStyle, ...childSelectedStyle };
@@ -75,10 +89,17 @@ export function DebugComponentBox({ element, children, elementMap }: { element: 
     position, top, left, width, height,
     background, backgroundImage, zIndex,
     display, marginTop, marginLeft,
-    opacity, outline, backgroundColor, pointerEvents
+    opacity, outline, backgroundColor, pointerEvents,
+    transformTranslateX, transformTranslateY
   } = currentStyle;
 
   const { onMouseDown } = useMouseEventDebugComponentItem({ elementId: element.id, });
+
+
+  // positionType 에 따라 다르게 처리
+  // const trasnformStyle = !transformTranslateX && !transformTranslateY ? '' : `translate(${transformTranslateX}, ${transformTranslateY})`;
+  // const marginTopStyle = !marginTop ? '' : `margin-top: ${marginTop}px`;
+  // const marginLeftStyle = !marginLeft ? '' : `margin-left: ${marginLeft}px`;
 
   return (
     <div
@@ -93,7 +114,7 @@ export function DebugComponentBox({ element, children, elementMap }: { element: 
         backgroundColor,
         pointerEvents: pointerEvents === 'none' ? 'none' : 'auto',
         cursor: "move",
-        transform: `translate(${element.style.transformTranslateX}, ${element.style.transformTranslateY})`,
+        transform: `translate(${transformTranslateX}, ${transformTranslateY})`,
       }}
       data-id={element.id}
       data-class-name={element.className.join(" ")}
