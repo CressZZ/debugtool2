@@ -19,6 +19,8 @@ export type DebugElement = {
     marginLeft: string;
     top: string;
     left: string;
+    right: string;
+    bottom: string;
     position: string;
     background: string;
     backgroundImage: string;
@@ -58,7 +60,8 @@ export type ElementTreeAction =
   | { type: "TOGGLE_HIDDEN_ALL_ELEMENT"; }
   | { type: "UPDATE_ELEMENT_POSITION_TYPE"; payload: { elementId: ElementId; positionType: 'margin' | 'transform' } }
   | { type: "UNDO" }
-  | { type: "REDO" };
+  | { type: "REDO" }
+  | { type: "RESET_ELEMENT_MAP" };
 
 // --- Reducer ---
 const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction): ElementTreeState => {
@@ -75,7 +78,12 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
       draft.history.future = []; // redo는 새 변경시 초기화
     };
     switch (action.type) {
-
+      case "RESET_ELEMENT_MAP": {
+        saveToHistory();
+        draft.elementMap = {};
+        draft.rootElementId = [];
+        break;
+      }
       case "SET_ELEMENT_MAP": {
         saveToHistory();
         draft.elementMap = { ...draft.elementMap, ...action.payload.elementMap };

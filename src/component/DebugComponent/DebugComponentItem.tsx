@@ -4,10 +4,10 @@ import { useElementTree } from "../../hooks/useElementTree";
 import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
 
 export function DebugComponentItem({ element }: { element: DebugElement }) {
-  const { elementMap } = useElementTree();
+  const { elementMap, rootElementId } = useElementTree();
 
   return (
-    <DebugComponentBox element={element} elementMap={elementMap} >
+    <DebugComponentBox element={element} elementMap={elementMap} rootElementId={rootElementId} >
       <DebugComponentChildren element={element} elementMap={elementMap} />
     </DebugComponentBox>
   );
@@ -16,7 +16,7 @@ export function DebugComponentItem({ element }: { element: DebugElement }) {
 
 // 감싸고 있는놈
 
-export function DebugComponentBox({ element, children, elementMap }: { element: DebugElement; children: ReactNode, elementMap: Record<string, DebugElement> }) {
+export function DebugComponentBox({ element, children, elementMap, rootElementId }: { element: DebugElement; children: ReactNode, elementMap: Record<string, DebugElement>, rootElementId: string[] }) {
   const defaultStyle = {
     outline: "2px solid red",
     backgroundColor: 'transparent',
@@ -53,8 +53,12 @@ export function DebugComponentBox({ element, children, elementMap }: { element: 
     outline: "2px solid rgba(91, 138, 138)",
     opacity: '0.8',
     zIndex: '1000',
-    backgroundColor: 'rgba(0, 245, 245, 0.6)', 
+    // backgroundColor: 'rgba(0, 245, 245, 0.6)', 
 
+  }
+
+  const rootStyle = {
+    pointerEvents: 'none',
   }
 
   let currentStyle = { ...element.style, ...defaultStyle };
@@ -64,22 +68,52 @@ export function DebugComponentBox({ element, children, elementMap }: { element: 
     currentStyle = { ...currentStyle, ...selectedStyle };
   }
 
-  if(element.parentId) {
-    const parentElement = elementMap[element.parentId];
-    if(parentElement.selected) {
-      currentStyle = { ...currentStyle, ...parentSelectedStyle };
+  const isAnyAncestorSelected = (element: DebugElement): boolean => {
+    if (!element.parentId) {
+      // 루트까지 올라갔으면 false
+      return false;
     }
+  
+    const parent = elementMap[element.parentId];
+    if (!parent) {
+      return false;
+    }
+  
+    if (parent.selected) {
+      return true;
+    }
+  
+    // 부모의 부모 재귀 검사
+    return isAnyAncestorSelected(parent);
+  };
+  
+  if(isAnyAncestorSelected(element)) {
+    currentStyle = { ...currentStyle, ...parentSelectedStyle };
   }
 
-if(element.children?.some(childId => elementMap[childId].selected)) {
-    if(element.parentId) {
-      currentStyle = { ...currentStyle, ...childSelectedStyle };
+  const isAnyDescendantSelected = (element: DebugElement): boolean => {
+    // 현재 element 의 children 에서 selected 인 애가 있는지 체크
+    return element.children.some(childId => {
+      const child = elementMap[childId];
+      if (!child) return false;
+  
+      // 자식이 selected 면 true
+      if (child.selected) return true;
+  
+      // 아니면 자식의 자식 재귀 검사
+      return isAnyDescendantSelected(child);
+    });
+  };
 
-    }
+  if(isAnyDescendantSelected(element)) {
+    currentStyle = { ...currentStyle, ...childSelectedStyle };
   }
   if (element.hidden) {
     currentStyle = { ...currentStyle, ...hiddenStyle };
   } 
+  if(rootElementId.includes(element.id)) {
+    currentStyle = { ...currentStyle, ...rootStyle };
+  }
   // if (element.children?.some(childId => elementMap[childId].selected)) {
   //   if(!element.parentId) return;
   //   currentStyle = { ...currentStyle, ...childSelectedStyle };
@@ -90,7 +124,8 @@ if(element.children?.some(childId => elementMap[childId].selected)) {
     background, backgroundImage, zIndex,
     display, marginTop, marginLeft,
     opacity, outline, backgroundColor, pointerEvents,
-    transformTranslateX, transformTranslateY
+    transformTranslateX, transformTranslateY,
+    right, bottom
   } = currentStyle;
 
   const { onMouseDown } = useMouseEventDebugComponentItem({ elementId: element.id, });
@@ -112,6 +147,7 @@ if(element.children?.some(childId => elementMap[childId].selected)) {
         marginTop, marginLeft,
         outline,
         backgroundColor,
+        right, bottom,
         pointerEvents: pointerEvents === 'none' ? 'none' : 'auto',
         cursor: "move",
         transform: `translate(${transformTranslateX}, ${transformTranslateY})`,

@@ -16,7 +16,7 @@ import {
 } from "./useStartPositions";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
 
-export function useKeyEventWindow({targetSelector}: {targetSelector: string}) {
+export function useKeyEventWindow(targetSelector: string) {
   const dispatch = useElementTreeDispatch();
   const selectedElement = useSelectedElement();
   const { startPositions, setStartPositions } = useStartPositions();

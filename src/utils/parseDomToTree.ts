@@ -6,13 +6,17 @@ let count = 0;
 const noStaticPosition = ['absolute', 'fixed', 'relative'];
 
 function parseTranslate(transform: string): { x: string; y: string } {
-  const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+
+  const match = transform.match(/matrix\([^,]+, [^,]+, [^,]+, [^,]+, ([^,]+), ([^)]+)\)/);
+
   if (match) {
-    return {
-      x: match[1].trim(),
-      y: match[2].trim(),
-    };
+    const translateX = match[1].trim();
+    const translateY = match[2].trim();
+    return { x: translateX + 'px', y: translateY + 'px' };
+  } else {
+    console.log('No matrix transform found');
   }
+
   return { x: '0px', y: '0px' };
 }
 
@@ -21,6 +25,9 @@ function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: stri
   const id = count++ + '_' + uidv4().slice(0, 5);
   const computed = getComputedStyle(el);
   const { x, y } = parseTranslate(computed.transform);
+  // const isMiddleLeft = window.innerWidth / 2 < Number(computed.left.replace('px', '')) + 1 && window.innerWidth / 2 > Number(computed.left.replace('px', '')) - 1;
+  // const isMiddleTop = window.innerHeight / 2 < Number(computed.top.replace('px', '')) + 1 && window.innerHeight / 2 > Number(computed.top.replace('px', '')) - 1;
+  // console.log(isMiddleLeft, isMiddleTop, window.innerWidth / 2, window.innerHeight / 2, computed.left, computed.top);
   return {
     id,
     tagName: el.tagName.toLowerCase(),
@@ -28,14 +35,16 @@ function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: stri
     className: Array.from(el.classList),
     parentId,
     selected: false,
-    // positionType: 'transform', // 사용안함
-    positionType: 'margin',
+    positionType: 'transform', // 사용안함
+    // positionType: 'margin',
     style: {
       pointerEvents: 'auto',
       marginTop: computed.marginTop,
       marginLeft: computed.marginLeft,
-      top: isRoot ? '0' : '50%',
-      left: isRoot ? '0' : '50%',
+      top: isRoot ? '0' : computed.top,
+      left: isRoot ? '0' : computed.left,
+      right: isRoot ? '0' : computed.right,
+      bottom: isRoot ? '0' : computed.bottom,
       position: computed.position,
       background: !isRoot ? computed.background : 'transparent',
       backgroundImage: !isRoot ? computed.backgroundImage : 'none',
@@ -82,5 +91,6 @@ export function parseDomToTree(rootEl: HTMLElement, excludeTargetSelector: strin
     // 아이디 반환
     return element.id;
   }
-  return { elementMap, rootElementId: [rootElementId] };
+
+  return { elementMap, rootElementId: [rootElementId], history: { past: [], future: [] } };
 }

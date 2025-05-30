@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export function useKitRootStyle() {
+export function useDebugerWrapperStyle() {
 
   useEffect(() => {
     const target = document.querySelector('#kitDebgRoot') as HTMLElement;

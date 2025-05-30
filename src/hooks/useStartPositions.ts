@@ -52,7 +52,7 @@ export function getMovePosition(startPosition: movePosition, dx: number, dy: num
     }
   }
 }
-export function getPositionScss(elementMap: ElementMap, rootElementIds: ElementId[], rootSelector: string) {
+export function getPositionScss(elementMap: ElementMap, rootElementIds: ElementId[], targetSelector: string) {
   const lines: string[] = [];
 
   const makeClassSelector = (element: DebugElement) => {
@@ -75,6 +75,15 @@ export function getPositionScss(elementMap: ElementMap, rootElementIds: ElementI
   rootElementIds.forEach(rootId => {
     const rootElement = elementMap[rootId];
     if (rootElement) {
+      // 이제 rootSelector 는 rootElement 에서 가져옴
+      // const rootSelector = makeClassSelector(rootElement);
+      const rootSelector = targetSelector;
+      
+      if (!rootSelector) {
+        // 루트 클래스 없으면 건너뜀 (원하면 처리 가능)
+        return;
+      }
+
       // 루트 열기
       lines.push(`${rootSelector} {`);
 

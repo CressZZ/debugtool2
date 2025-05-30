@@ -1,13 +1,12 @@
 import { useEffect, useRef } from "react";
 import { parseDomToTree } from "./utils/parseDomToTree";
-import type { KitDebgOptions } from "./main";
 import { DebugComponent } from "./component/DebugComponent";
 import { useElementTree, useElementTreeDispatch } from "./hooks/useElementTree";
 import { useKeyEventWindow } from "./hooks/useKeyEventWindow";
-import { useDisplayNoneOriginEl } from "./hooks/useDisplayNoneOriginEl";
 import { DebugBackground } from "./component/DebugBackground";
 import { DebugControlPanel } from "./component/DebugControlPanel";
-import { useKitRootStyle } from "./hooks/useKitRootStyle";
+import { useDebugerWrapperStyle } from "./hooks/useDebugerWrapperStyle";
+import throttle from "lodash.throttle";
 
 type AppProps = {
   targetSelector: string;
@@ -24,11 +23,25 @@ function App({
   excludeTargetSelector = [],
   onExit,
 }: AppProps) {
-  // console.log({targetSelector, background, extraTargetSelectors, excludeTargetSelector});
   const { elementMap } = useElementTree();
   const ElementTreeDispatch = useElementTreeDispatch();
 
   const isMounted = useRef(false);
+
+  const setElementMap = () => {
+    const ParsedElementTree = parseDomToTree(
+      document.querySelector(targetSelector)!,
+      excludeTargetSelector
+    );
+
+    ElementTreeDispatch({
+      type: "SET_ELEMENT_MAP",
+      payload: {
+        elementMap: ParsedElementTree.elementMap,
+        rootElementId: ParsedElementTree.rootElementId,
+      },
+    });
+  }
 
   useEffect(() => {
   }, [elementMap]);
@@ -37,27 +50,28 @@ function App({
     if (isMounted.current) return;
     isMounted.current = true;
 
-    // 트리 파싱
-    const ParsedElementTree = parseDomToTree(
-      document.querySelector(targetSelector)!,
-      excludeTargetSelector
-    );
-
-    // 트리 설정
-    ElementTreeDispatch({
-      type: "SET_ELEMENT_MAP",
-      payload: {
-        elementMap: ParsedElementTree.elementMap,
-        rootElementId: ParsedElementTree.rootElementId,
-      },
-    });
+    setElementMap();
   });
 
+  useEffect(() => {
+    const handleResize = throttle(() => {
+      ElementTreeDispatch({ type: "RESET_ELEMENT_MAP" });
+  
+      setElementMap();
+    }, 200); // 200ms throttle (원하면 숫자 조절 가능)
+  
+    window.addEventListener('resize', handleResize);
+  
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      handleResize.cancel?.(); // lodash.throttle 은 cancel 지원
+    };
+  }, []);
 
   // 키바인딩
-  useKeyEventWindow({targetSelector});
+  useKeyEventWindow(targetSelector);
 
-  useKitRootStyle();
+  useDebugerWrapperStyle();
 
   // 휠이벤트 막기(필요한가? kit 페이지 휠만 막아도 되지 않나)
   useEffect(() => {
