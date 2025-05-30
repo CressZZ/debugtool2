@@ -42,31 +42,17 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
 
   const handleSelectElement = (element: DebugElement) => {
     flushSync(() => {
-      // dispatch({
-      //     type: "UNSELECT_ALL_ELEMENT",
-      //   });
-
+   
       dispatch({
         type: "SELECT_ONLY_ELEMENT",
         payload: { elementId: element.id },
       });
     });
 
-    // selectElementRecursive(element);
+
   };
   
-  const selectElementRecursive = (element: DebugElement) => {
-    flushSync(() => {
-      dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
-    });
-  
-    // element.children.forEach((childId) => {
-    //   const child = state.elementMap[childId];
-    //   if (child) {
-    //     selectElementRecursive(child); // 재귀!
-    //   }
-    // });
-  };
+
 
   const renderElementTree = (element: DebugElement) => {
     return (

@@ -38,8 +38,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
       dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
     }else{
       if(!element.selected){
-        dispatch({ type: "UNSELECT_ALL_ELEMENT", payload: { elementId: element.id } });
-        dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
+        dispatch({ type: "SELECT_ONLY_ELEMENT", payload: { elementId: element.id } });
       }else{
         //
       }
