@@ -3,11 +3,13 @@ import { parseDomToTree } from "./utils/parseDomToTree";
 import type { KitDebgOptions } from "./main";
 import { DebugComponentList } from "./component/DebugComponent/DebugComponentList";
 import { useElementTree, useElementTreeDispatch } from "./hooks/useElementTree";
+import { useKeybinding } from "./hooks/useKeybinding";
+import { useDisplayNoneOriginEl } from "./hooks/useDisplayNoneOriginEl";
 
 function App({targetSelector, background, extraTargetSelectors, excludeTargetSelector}: KitDebgOptions) {
 
   console.log({targetSelector, background, extraTargetSelectors, excludeTargetSelector});
-  const { elementMap, rootElementId } = useElementTree();
+  const { elementMap } = useElementTree();
   const ElementTreeDispatch = useElementTreeDispatch();
 
   const isMounted = useRef(false);
@@ -15,19 +17,21 @@ function App({targetSelector, background, extraTargetSelectors, excludeTargetSel
   useEffect(() => {
     if (isMounted.current) return;
     isMounted.current = true;
+
+    // 트리 파싱
     const ParsedElementTree = parseDomToTree(document.querySelector(targetSelector)!);
+
+    // 트리 설정
     ElementTreeDispatch({ type: "SET_ELEMENT_MAP", payload: { elementMap: ParsedElementTree.elementMap, rootElementId: ParsedElementTree.rootElementId } });
-    console.log('ParsedElementTree', ParsedElementTree);
+
   });
 
 
   // 복제 다한후 숨기기 위해 사용
-  useEffect(() => {
-    if (rootElementId) {
-      const el = document.querySelector(targetSelector) as HTMLElement;
-      if (el) el.style.display = 'none';
-    }
-  }, [rootElementId]);
+  useDisplayNoneOriginEl(targetSelector);
+
+  // 키바인딩
+  useKeybinding();
 
   useEffect(() => {
     console.log('elementMap', elementMap);

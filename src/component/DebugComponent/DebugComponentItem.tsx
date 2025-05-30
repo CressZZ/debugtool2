@@ -39,7 +39,7 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
       onMouseDown={onMouseDown}
       onClick={handleClick}
       style={{
-        position: position as any,
+        position: position as 'absolute' | 'relative' | 'fixed' | 'sticky' | 'static' | 'initial' | 'inherit',
         top, left, width, height,
         background, backgroundImage, zIndex,
         opacity, display,

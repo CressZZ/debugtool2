@@ -51,6 +51,8 @@ function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: stri
 
 export function parseDomToTree(rootEl: HTMLElement): ElementTreeState {
   const elementMap: Record<string, DebugElement> = {};
+
+  // 처음에만 isRoot
   const rootElementId = traverse({el: rootEl, isRoot: true});
 
   // 트리 순회 하여 elementMap 채우기
@@ -67,6 +69,7 @@ export function parseDomToTree(rootEl: HTMLElement): ElementTreeState {
         element.children.push(childId);
       }
     });
+    
     // 아이디 반환
     return element.id;
   }

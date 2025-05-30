@@ -1,5 +1,5 @@
-import { useContext } from "react";
-import { ElementTreeDispatchContext, ElementTreeStateContext } from "../context/ElementTreeContext";
+import { useContext, useEffect, useState } from "react";
+import { ElementTreeDispatchContext, ElementTreeStateContext, type DebugElement } from "../context/ElementTreeContext";
 
 export function useElementTree() {
   return useContext(ElementTreeStateContext);
@@ -11,8 +11,11 @@ export function useElementTreeDispatch() {
 
 export function useSelectedElement() {
   const { elementMap } = useElementTree();
-  const selectedElement = Object.values(elementMap).filter(e => e.selected);
+  const [selectedElement, setSelectedElement] = useState<DebugElement[]>(Object.values(elementMap).filter(e => e.selected));
+
+  useEffect(() => {
+    setSelectedElement(Object.values(elementMap).filter(e => e.selected));
+  }, [elementMap]);
 
   return selectedElement
 }
-
