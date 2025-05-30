@@ -44,8 +44,8 @@ export type ElementTreeAction =
   | { type: "TOGGLE_SELECTED_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "SELECTED_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "UNSELECT_ELEMENT"; payload: { elementId: ElementId } }
-  | { type: "UNSELECT_ALL_ELEMENT"; payload: { elementId: ElementId } }
-
+  | { type: "UNSELECT_ALL_ELEMENT"}
+  | { type: "SELECT_ONLY_ELEMENT"; payload: { elementId: ElementId } }
   | { type: "UPDATE_ELEMENT_STYLE"; payload: { elementId: ElementId; style: Partial<DebugElement["style"]> } }
   | { type: "UPDATE_MULTIPLE_ELEMENTS_STYLE"; payload: Record<ElementId, Partial<DebugElement["style"]>> }
   | { type: "UPDATE_ELEMENT_POSITION"; payload: { elementId: ElementId; x: number, y: number } }
@@ -102,15 +102,43 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
         break;
       }
 
-      case "TOGGLE_HIDDEN_ELEMENT": {
-        draft.elementMap[action.payload.elementId].hidden = !draft.elementMap[action.payload.elementId].hidden;
+      case "SELECT_ONLY_ELEMENT": {
+        if(draft.rootElementId.includes(action.payload.elementId)) return;
+
+        Object.values(draft.elementMap).forEach(el => {
+          el.selected = false;
+        });
+        draft.elementMap[action.payload.elementId].selected = true;
         break;
+    }
+
+      case "TOGGLE_HIDDEN_ELEMENT": {
+        if (draft.rootElementId.includes(action.payload.elementId)) return;
+
+        const parentElement = draft.elementMap[action.payload.elementId];
+        const newHiddenState = !parentElement.hidden;
+      
+        const toggleRecursive = (elementId: string, hidden: boolean) => {
+          const el = draft.elementMap[elementId];
+          el.hidden = hidden;
+      
+          el.children.forEach(childId => {
+            toggleRecursive(childId, hidden);
+          });
+        };
+      
+        toggleRecursive(action.payload.elementId, newHiddenState);
+        break;
+      
       }
 
       case "TOGGLE_HIDDEN_ALL_ELEMENT": {
+        const isHidden = Object.values(draft.elementMap).some(element => element.hidden);
         Object.values(draft.elementMap).forEach(element => {
-          element.hidden = !element.hidden;
+          if(draft.rootElementId.includes(element.id)) return;
+          element.hidden = !isHidden;
         });
+        break;
       }
     }
   });

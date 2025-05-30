@@ -120,21 +120,27 @@ export function useKeyEventWindow() {
           payload: { elementId: element.id },
         });
       });
+      return;
     }
 
-    if (e.key === "h") {
+    if ((e.metaKey || e.ctrlKey) && (e.key === "h" || e.key === "H" || e.key === "ㅗ")) {
+      dispatch({
+        type: "TOGGLE_HIDDEN_ALL_ELEMENT",
+      });
+      return;
+    }
+
+    if (e.key === "h" || e.key === "H" || e.key === "ㅗ") {
       selectedElementRef.current.forEach((element) => {
         dispatch({
           type: "TOGGLE_HIDDEN_ELEMENT",
           payload: { elementId: element.id },
         });
       });
+      return;
     }
-    if ((e.metaKey || e.ctrlKey) && e.key === "h") {
-        dispatch({
-          type: "TOGGLE_HIDDEN_ALL_ELEMENT",
-        });
-    }
+
+ 
   };
 
   // 키 바인딩은 빈 deps (ref로 안전하게 최신 selectedElement 사용)

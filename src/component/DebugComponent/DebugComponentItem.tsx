@@ -7,7 +7,7 @@ export function DebugComponentItem({ element }: { element: DebugElement }) {
   const { elementMap } = useElementTree();
 
   return (
-    <DebugComponentBox element={element} >
+    <DebugComponentBox element={element} elementMap={elementMap} >
       <DebugComponentChildren element={element} elementMap={elementMap} />
     </DebugComponentBox>
   );
@@ -16,18 +16,21 @@ export function DebugComponentItem({ element }: { element: DebugElement }) {
 
 // 감싸고 있는놈
 
-export function DebugComponentBox({ element, children }: { element: DebugElement; children: ReactNode }) {
+export function DebugComponentBox({ element, children, elementMap }: { element: DebugElement; children: ReactNode, elementMap: Record<string, DebugElement> }) {
   const defaultStyle = {
     outline: "2px solid red",
     backgroundColor: 'transparent',
     pointerEvents: 'auto',
+    opacity: '1',
+    zIndex: '1'
   }
 
   const selectedStyle = {
     outline: "2px solid green",
-    opacity: '0.5',
+    opacity: '0.8',
     zIndex: '1000',
-    backgroundColor: 'teal',
+    backgroundColor: 'rgba(0, 128, 128, 0.6)', 
+
   }
 
   const hiddenStyle = {
@@ -36,21 +39,43 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
     zIndex: '0',
   }
 
+  const parentSelectedStyle = {
+    opacity: '0.4',
+    pointerEvents: 'none',
+    // zIndex: '1000',
+    outline: "2px solid orange",
+
+    backgroundColor: 'transparent',
+  }
+
   let currentStyle = { ...element.style, ...defaultStyle };
+
 
   if (element.selected) {
     currentStyle = { ...currentStyle, ...selectedStyle };
   }
 
-  if (element.hidden) {
-    currentStyle = { ...currentStyle, ...hiddenStyle };
+  if(element.parentId) {
+    const parentElement = elementMap[element.parentId];
+    if(parentElement.selected) {
+      currentStyle = { ...currentStyle, ...parentSelectedStyle };
+    }
   }
 
+  if (element.hidden) {
+    currentStyle = { ...currentStyle, ...hiddenStyle };
+  } 
+
+  // if (element.children?.some(childId => elementMap[childId].selected)) {
+  //   if(!element.parentId) return;
+  //   currentStyle = { ...currentStyle, ...childSelectedStyle };
+  // }
+  
   const {
     position, top, left, width, height,
     background, backgroundImage, zIndex,
     display, marginTop, marginLeft,
-    opacity, outline, backgroundColor,
+    opacity, outline, backgroundColor, pointerEvents
   } = currentStyle;
 
   const { onMouseDown } = useMouseEventDebugComponentItem({ elementId: element.id, });
@@ -66,6 +91,7 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
         marginTop, marginLeft,
         outline,
         backgroundColor,
+        pointerEvents: pointerEvents === 'none' ? 'none' : 'auto',
         cursor: "move",
         transform: `translate(${element.style.transformTranslateX}, ${element.style.transformTranslateY})`,
       }}

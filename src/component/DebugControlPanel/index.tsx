@@ -4,8 +4,9 @@ import {
   ElementTreeDispatchContext,
 } from "../../context/ElementTreeContext";
 import type { DebugElement } from "../../context/ElementTreeContext";
+import { flushSync } from "react-dom";
 
-export function DebugControlPanel() {
+export function DebugControlPanel({ onExit }: { onExit: () => void }) {
   const state = useContext(ElementTreeStateContext);
   const dispatch = useContext(ElementTreeDispatchContext);
 
@@ -40,15 +41,31 @@ export function DebugControlPanel() {
   };
 
   const handleSelectElement = (element: DebugElement) => {
-    dispatch({
-      type: "UNSELECT_ALL_ELEMENT",
-      payload: { elementId: element.id },
-    });
-    dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
+    flushSync(() => {
+      // dispatch({
+      //     type: "UNSELECT_ALL_ELEMENT",
+      //   });
 
-    element.children.forEach((childId) => {
-      dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: childId } });
+      dispatch({
+        type: "SELECT_ONLY_ELEMENT",
+        payload: { elementId: element.id },
+      });
     });
+
+    // selectElementRecursive(element);
+  };
+  
+  const selectElementRecursive = (element: DebugElement) => {
+    flushSync(() => {
+      dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
+    });
+  
+    // element.children.forEach((childId) => {
+    //   const child = state.elementMap[childId];
+    //   if (child) {
+    //     selectElementRecursive(child); // 재귀!
+    //   }
+    // });
   };
 
   const renderElementTree = (element: DebugElement) => {
@@ -72,7 +89,6 @@ export function DebugControlPanel() {
             gap: "6px",
             background: element.selected ? "#008080" : "transparent",
             color: element.selected ? "#fff" : "#333",
-            transition: "background 0.2s, color 0.2s",
           }}
           onClick={() => handleSelectElement(element)}
           onMouseEnter={(e) => {
@@ -90,6 +106,18 @@ export function DebugControlPanel() {
           <span style={{ fontSize: "11px", color: "#888" }}>
             #{element.className.join(" ")}
           </span>
+            {/* Hidden 상태 표시 → 오른쪽 끝으로 정렬 */}
+  <span
+    style={{
+      fontSize: "10px",
+      marginLeft: "auto",
+      color: element.hidden ? "#ff5050" : "#50c878", // 빨강 / 초록
+      fontWeight: "bold",
+    }}
+  >
+    {element.hidden ? "Hidden" : "Visible"}
+  </span>
+
         </div>
         {element.children.map((childId) => {
           const child = state.elementMap[childId];
@@ -143,20 +171,35 @@ export function DebugControlPanel() {
         >
           Layer Panel
         </span>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "#fff",
-            fontSize: "16px",
-            cursor: "pointer",
-            transform: isCollapsed ? "rotate(-90deg)" : "none",
-            transition: "transform 0.2s",
-          }}
-        >
-          ▶
-        </button>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#fff",
+              fontSize: "16px",
+              cursor: "pointer",
+              transform: isCollapsed ? "rotate(-90deg)" : "none",
+            }}
+          >
+            ▶
+          </button>
+          <button
+            onClick={() => {
+              if (onExit) onExit();
+            }}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#ff7070",
+              fontSize: "14px",
+              cursor: "pointer",
+            }}
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       {!isCollapsed && (
@@ -167,8 +210,6 @@ export function DebugControlPanel() {
           }}
           onWheel={(e) => {
             e.stopPropagation();
-            // e.preventDefault();
-            // console.log("panel wheel", e.deltaY);
           }}
         >
           {state.rootElementId.map((rootId) => {
