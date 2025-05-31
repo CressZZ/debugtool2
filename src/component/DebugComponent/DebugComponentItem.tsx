@@ -3,20 +3,21 @@ import {  type DebugElement } from "../../context/ElementTreeContext";
 import { isAnyAncestorSelected, isAnyDescendantSelected, useElementTree } from "../../hooks/useElementTree";
 import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
 
-export const DebugComponentItem = memo(function DebugComponentItem({ element }: { element: DebugElement }) {
-  const { elementMap, rootElementId } = useElementTree();
-  console.log(element.id)
+export const DebugComponentItem = memo(function DebugComponentItem({ rootElementId, element }: { rootElementId: string[], element: DebugElement }) {
+
 
   return (
-    <DebugComponentBox element={element} elementMap={elementMap} rootElementId={rootElementId}>
-      <DebugComponentChildren element={element} elementMap={elementMap} />
+    <DebugComponentBox element={element}  rootElementId={rootElementId}>
+      <DebugComponentChildren element={element}  rootElementId={rootElementId}/>
     </DebugComponentBox>
   );
 });
 
 // 감싸고 있는놈
 
-export function DebugComponentBox({ element, children, elementMap, rootElementId }: { element: DebugElement; children: ReactNode, elementMap: Record<string, DebugElement>, rootElementId: string[] }) {
+export function DebugComponentBox({ element, children, rootElementId }: { element: DebugElement; children: ReactNode, rootElementId: string[] }) {
+  console.log(element.id)
+
   const defaultStyle = {
     outline: "2px solid red",
     backgroundColor: 'transparent',
@@ -68,11 +69,11 @@ export function DebugComponentBox({ element, children, elementMap, rootElementId
   }
 
 
-  if(isAnyAncestorSelected(element, elementMap)) {
+  if(element.isAnyAncestorSelected) {
     currentStyle = { ...currentStyle, ...anyAncestorSelectedStyle };
   }
 
-  if(isAnyDescendantSelected(element, elementMap)) {
+  if(element.isAnyDescendantSelected) {
     currentStyle = { ...currentStyle, ...anyDescendantSelectedStyle };
   }
 
@@ -128,17 +129,18 @@ export function DebugComponentBox({ element, children, elementMap, rootElementId
 // 순환 돌리는 녀석
 export function DebugComponentChildren({
   element,
-  elementMap,
+  rootElementId,
 }: {
   element: DebugElement;
-  elementMap: Record<string, DebugElement>;
+  rootElementId: string[];
 }) {
+  const { elementMap } = useElementTree();
   if (!element.children?.length) return null;
 
   return (
     <>
       {element.children.map((childId) => (
-        <DebugComponentItem key={childId} element={elementMap[childId]} />
+        <DebugComponentItem key={childId} rootElementId={rootElementId} element={elementMap[childId]} />
       ))}
     </>
   );

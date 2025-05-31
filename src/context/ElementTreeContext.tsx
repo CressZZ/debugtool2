@@ -66,6 +66,77 @@ export type ElementTreeAction =
   | { type: "REDO" }
   | { type: "RESET_ELEMENT_MAP" };
 
+  function updateAncestorDescendantFlags(elementMap: Record<string, DebugElement>) {
+    // 1️⃣ 모든 노드의 플래그 초기화
+    Object.values(elementMap).forEach(el => {
+      el.isAnyAncestorSelected = false;
+      el.isAnyDescendantSelected = false;
+    });
+  
+    // 2️⃣ 현재 selected 된 노드들만 찾기
+    const selectedElements = Object.values(elementMap).filter(el => el.selected);
+  
+    // 3️⃣ selected 노드들 각각 처리
+    selectedElements.forEach(selectedEl => {
+      // --- 부모 방향 업데이트 (while 사용) ---
+  
+      /**
+       * 부모는 "parentId" 를 따라 "단방향으로" 타고 올라가는 구조다.
+       * 
+       * → 구조가 선형 (1 → 1 → 1 ... 루트까지)
+       * → 트리 depth 가 깊어져도 while 사용하면 stack overflow 걱정 없음.
+       * → 성능적으로도 while 이 반복문 최적화가 잘 되어 있음 (V8 기준).
+       */
+      const visitedParents = new Set<string>(); // 중복 처리 방지 (여러 selected 노드 처리 시)
+  
+      let current = selectedEl;
+      while (current.parentId) {
+        const parent = elementMap[current.parentId];
+        if (!parent) break;
+  
+        // 중복 업데이트 방지
+        if (!visitedParents.has(parent.id)) {
+          parent.isAnyDescendantSelected = true;
+          visitedParents.add(parent.id);
+        }
+  
+        // 다음 부모로 이동
+        current = parent;
+      }
+  
+      // --- 자식 방향 업데이트 (재귀 사용) ---
+  
+      /**
+       * 자식 방향은 "children" 배열을 타고 내려가는 구조다.
+       * 
+       * → 구조가 트리 구조 (1 → N → N...)
+       * → 자연스럽게 재귀로 표현 가능
+       * → 코드 가독성도 높음
+       */
+      const visitedChildren = new Set<string>(); // 중복 처리 방지 (여러 selected 노드 처리 시)
+  
+      const propagateToChildren = (element: DebugElement) => {
+        element.children.forEach(childId => {
+          const child = elementMap[childId];
+          if (!child) return;
+  
+          // 중복 업데이트 방지
+          if (!visitedChildren.has(child.id)) {
+            child.isAnyAncestorSelected = true;
+            visitedChildren.add(child.id);
+  
+            // 재귀적으로 자식 처리
+            propagateToChildren(child);
+          }
+        });
+      };
+  
+      // 재귀 시작
+      propagateToChildren(selectedEl);
+    });
+  }
+
+  
 // --- Reducer ---
 const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction): ElementTreeState => {
   return produce(state, (draft) => {
@@ -97,38 +168,52 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
       case "TOGGLE_SELECTED_ELEMENT": {
         if (draft.rootElementId.includes(action.payload.elementId)) return;
         saveToHistory();
-        draft.elementMap[action.payload.elementId].selected = !draft.elementMap[action.payload.elementId].selected;
+        const element = draft.elementMap[action.payload.elementId];
+        element.selected = !element.selected;
+        updateAncestorDescendantFlags(draft.elementMap);
         break;
       }
 
       case "SELECTED_ELEMENT": {
         if (draft.rootElementId.includes(action.payload.elementId)) return;
         saveToHistory();
-        draft.elementMap[action.payload.elementId].selected = true;
+
+        const element = draft.elementMap[action.payload.elementId];
+        element.selected = true;
+        updateAncestorDescendantFlags(draft.elementMap);
         break;
       }
 
       case "UNSELECT_ALL_ELEMENT": {
         saveToHistory();
+
         Object.values(draft.elementMap).forEach(element => {
           element.selected = false;
         });
+        updateAncestorDescendantFlags(draft.elementMap);
         break;
       }
 
       case "UNSELECT_ELEMENT": {
         saveToHistory();
-        draft.elementMap[action.payload.elementId].selected = false;
+
+        const element = draft.elementMap[action.payload.elementId];
+        element.selected = false;
+        updateAncestorDescendantFlags(draft.elementMap);
         break;
       }
 
       case "SELECT_ONLY_ELEMENT": {
         if (draft.rootElementId.includes(action.payload.elementId)) return;
         saveToHistory();
+        
         Object.values(draft.elementMap).forEach(el => {
           el.selected = false;
         });
-        draft.elementMap[action.payload.elementId].selected = true;
+
+        const element = draft.elementMap[action.payload.elementId];
+        element.selected = true;
+        updateAncestorDescendantFlags(draft.elementMap);
         break;
       }
 

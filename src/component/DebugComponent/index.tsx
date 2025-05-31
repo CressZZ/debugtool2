@@ -12,7 +12,7 @@ export function DebugComponent() {
     {rootElementId.length > 0 && rootElementId.map(id => {
       const rootElement = elementMap[id];
 
-      return <DebugComponentItem key={id} element={rootElement} />
+      return <DebugComponentItem key={id} rootElementId={rootElementId} element={rootElement} />
     })}
     </>
   );
