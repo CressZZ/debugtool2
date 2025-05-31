@@ -71,6 +71,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
 
     const positionStyles = getCurrentPositions(selectedElementRef.current, startPositions.current, dx, dy);
 
+    // console.log("positionStyles", positionStyles);
     dispatch({
       type: "UPDATE_MULTIPLE_ELEMENTS_STYLE",
       payload: positionStyles,

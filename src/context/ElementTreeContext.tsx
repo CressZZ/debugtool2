@@ -11,9 +11,12 @@ export type DebugElement = {
   className: string[];
   parentId?: string;
   selected: boolean;
+  isAnyAncestorSelected: boolean;
+  isAnyDescendantSelected: boolean;
   hidden: boolean;
   children: ElementId[];
   positionType: 'margin' | 'transform';
+
   style: {
     marginTop: string;
     marginLeft: string;

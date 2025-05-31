@@ -1,18 +1,18 @@
-import {  type ReactNode } from "react";
+import {  memo, type ReactNode } from "react";
 import {  type DebugElement } from "../../context/ElementTreeContext";
 import { isAnyAncestorSelected, isAnyDescendantSelected, useElementTree } from "../../hooks/useElementTree";
 import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
 
-export function DebugComponentItem({ element }: { element: DebugElement }) {
+export const DebugComponentItem = memo(function DebugComponentItem({ element }: { element: DebugElement }) {
   const { elementMap, rootElementId } = useElementTree();
+  console.log(element.id)
 
   return (
-    <DebugComponentBox element={element} elementMap={elementMap} rootElementId={rootElementId} >
+    <DebugComponentBox element={element} elementMap={elementMap} rootElementId={rootElementId}>
       <DebugComponentChildren element={element} elementMap={elementMap} />
     </DebugComponentBox>
   );
-}
-
+});
 
 // 감싸고 있는놈
 
@@ -39,19 +39,20 @@ export function DebugComponentBox({ element, children, elementMap, rootElementId
     zIndex: '0',
   }
 
+  // 부모가 선태되어 있는 경우 자식은 포인터 이벤트 먹으면 안됨
   const anyAncestorSelectedStyle = {
-    opacity: '0.4',
     pointerEvents: 'none',
-    // zIndex: '1000',
+    opacity: '0.4',
     outline: "2px solid rgba(218, 222, 2)",
     backgroundColor: 'rgba(218, 222, 2, 0.6)', 
   }
 
+  // 자식이 선택된 경우, 그 부모는 형제들 사이에서도 위로 올라와야 함
   const anyDescendantSelectedStyle = {
-    outline: "2px solid rgba(91, 138, 138)",
-    opacity: '0.8',
     zIndex: '1000',
     position: 'absolute',
+    outline: "2px solid rgba(91, 138, 138)",
+    opacity: '0.8',
     backgroundColor: 'rgba(240, 223, 217, 0.6)', 
   }
 

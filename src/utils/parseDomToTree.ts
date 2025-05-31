@@ -12,10 +12,9 @@ function parseTranslate(transform: string): { x: string; y: string } {
   if (match) {
     const translateX = match[1].trim();
     const translateY = match[2].trim();
+    
     return { x: translateX + 'px', y: translateY + 'px' };
-  } else {
-    console.log('No matrix transform found');
-  }
+  } 
 
   return { x: '0px', y: '0px' };
 }
