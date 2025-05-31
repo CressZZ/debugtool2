@@ -48,6 +48,10 @@ export function useKeyEventWindow(targetSelector: string) {
         rootElementIdRef.current,
         targetSelector
       );
+
+      // copy to clipboard
+      navigator.clipboard.writeText(positionScss);
+
       console.log(positionScss);
     }
 

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <style>
+     .debugWrapper{
+        /* width: 1920px;
+        height: 1080px; */
+
+        width: 100%;
+        top: 0;
+        left: 0;
+        background-color: papayawhip
+      }
+      .dragon1 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -358px;
+        margin-left: -322px;
+        width: 645px;
+        height: 716px;
+        /* background-color: blue; */
+        background-image: url("/dragon_1.webp");
+      }
+      .dragon2 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -305px;
+        margin-left: -260px;
+        width: 520px;
+        height: 610px;
+        /* background-color: green; */
+        background-image: url("/dragon_2.webp");
+      }
+      .dragon3 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -284px;
+        margin-left: -258px;
+        width: 517px;
+        height: 569px;
+        /* background-color: palegoldenrod; */
+        background-image: url("/dragon_3.webp");
+      }
+      .dragon4 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -287px;
+        margin-left: -330px;
+        width: 660px;
+        height: 574px;
+        /* background-color: palegreen; */
+        background-image: url("/dragon_4.webp");
+      }
+      /* .test{
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        top: 50%;
+        left: 50%;
+        margin-top: -50px;
+        margin-left: -50px;
+        background-color: red;
+      } */
+
+
+
+  .dragon.dragon1 {
+    margin-top: -76px;
+    margin-left: -428px;
+  }
+  .dragon.dragon2 {
+    margin-top: 19px;
+    margin-left: -656px;
+  }
+  .test {
+    margin-top: 0px;
+    margin-left: 0px;
+  }
+  .dragon.dragon3 {
+    margin-top: -373px;
+    margin-left: -5px;
+  }
+  .dragon.dragon4 {
+    margin-top: -413px;
+    margin-left: -74px;
+  }
+
+
+.test.is-active .dragon3{
+  opacity: 0;
+}
+
+.test.is-active .dragon4{
+  opacity: 1;
+}
+
+.test .dragon3 {
+  opacity: 1;
+}
+
+.test .dragon4 {
+  opacity: 0;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="debugWrapper" class="debugWrapper">
+      <div class="dragon dragon1"></div>
+      <div class="dragon dragon2"></div>
+      <div class="test">
+        <div class="dragon dragon3"></div>
+        <div class="dragon dragon4"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelector('.test').addEventListener('click', (e) => {
+      console.log(e.currentTarget.classList);
+      console.log(e.target.classList);
+
+      e.currentTarget.classList.toggle('is-active');
+    })
+  </script>
+
+  <div id="kitDebgRoot"></div>
+
+  <script type="module" src="/src/main.tsx"></script>
+  <script>
+    // window.addEventListener('load', () => {
+    //   kitDebg({
+    //     targetSelector: ['#section-4'],
+    //     background: '/back.webp',
+    //     excludeTargetSelector: ['.kit-page__bg']
+    //   })
+    // })
+  </script>
+</body>
+</html>

@@ -35,8 +35,8 @@ function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: stri
     className: Array.from(el.classList),
     parentId,
     selected: false,
-    positionType: 'transform', // 사용안함
-    // positionType: 'margin',
+    // positionType: 'transform', // 사용안함
+    positionType: 'margin',
     style: {
       pointerEvents: 'auto',
       marginTop: computed.marginTop,

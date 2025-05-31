@@ -142,25 +142,51 @@ const elementTreeReducer = (state: ElementTreeState, action: ElementTreeAction):
         }
         break;
       }
-
+      
       case "TOGGLE_HIDDEN_ELEMENT": {
         if (draft.rootElementId.includes(action.payload.elementId)) return;
         saveToHistory();
-
-        const parentElement = draft.elementMap[action.payload.elementId];
-        const newHiddenState = !parentElement.hidden;
-
-        const toggleRecursive = (elementId: string, hidden: boolean) => {
+      
+        const elementId = action.payload.elementId;
+        const element = draft.elementMap[elementId];
+        const newHiddenState = !element.hidden;
+      
+        // 자식 방향 hidden 토글
+        const toggleDescendants = (elementId: string, hidden: boolean) => {
           const el = draft.elementMap[elementId];
           el.hidden = hidden;
+      
           el.children.forEach(childId => {
-            toggleRecursive(childId, hidden);
+            toggleDescendants(childId, hidden);
           });
         };
-
-        toggleRecursive(action.payload.elementId, newHiddenState);
+      
+        // 부모 방향 숨김 해제 (visible 로만 propagate)
+        const showAncestors = (elementId: string) => {
+          const el = draft.elementMap[elementId];
+      
+          if (draft.rootElementId.includes(elementId)) return;
+      
+          if (el.parentId) {
+            const parent = draft.elementMap[el.parentId];
+            if (parent.hidden) {
+              parent.hidden = false;
+              showAncestors(parent.id);
+            }
+          }
+        };
+      
+        // 1️⃣ 자식들 toggle
+        toggleDescendants(elementId, newHiddenState);
+      
+        // 2️⃣ 부모는 숨김 해제할 때만 따라가기
+        if (newHiddenState === false) {
+          showAncestors(elementId);
+        }
+      
         break;
       }
+      
 
       case "TOGGLE_HIDDEN_ALL_ELEMENT": {
         saveToHistory();
