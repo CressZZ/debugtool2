@@ -1,8 +1,9 @@
 import {  memo, type ReactNode } from "react";
 import {  type DebugElement } from "../../types/elementTreeTypes";
 import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
-import { makeElementsByElementIdSelector, useElementTreeStore } from "../../store/useElementTreeStore";
+import { useElementTreeStore } from "../../store/useElementTreeStore";
 import { useShallow } from "zustand/shallow";
+import { makeElementsByElementIdSelector } from "../../store/elementTreeSelectors";
 
 export const DebugComponentItem = memo(function DebugComponentItem({  elementId }: { elementId: string }) {
   console.log("DebugComponentItem", elementId)

@@ -9,11 +9,12 @@ import {
   useStartPositions,
 } from "./useStartPositions";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
-import { selectedElementIdsSelector, selectedElementsSelector, useElementTreeStore } from "../store/useElementTreeStore";
+import { useElementTreeStore } from "../store/useElementTreeStore";
+import { selectedElementIdsSelector, selectedElementsSelector } from "../store/elementTreeSelectors";
 import type { DebugElement, ElementId } from "../types/elementTreeTypes";
 
 export function useKeyEventWindow(targetSelector: string) {
-  const selectedElement = useElementTreeStore(selectedElementsSelector);
+  const selectedElement = useElementTreeStore(useShallow(selectedElementsSelector));
   const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
   const { startPositions, setStartPositions } = useStartPositions();
 

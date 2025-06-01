@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from "react";
-import { shallow, useShallow } from 'zustand/shallow';
+import { useEffect, useRef } from "react";
+import { useShallow } from 'zustand/shallow';
 import { getCurrentPositions, useStartPositions } from "./useStartPositions";
 import type { DebugElement } from "../types/elementTreeTypes";
-import { selectedElementIdsSelector, useElementTreeStore } from "../store/useElementTreeStore";
+import { useElementTreeStore } from "../store/useElementTreeStore";
+import { selectedElementIdsSelector } from "../store/elementTreeSelectors";
 
 export type movePosition = {
   marginLeft: number;
