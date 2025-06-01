@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { ElementTreeDispatchContext, ElementTreeStateContext, type DebugElement } from "../context/ElementTreeContext";
 
 // 훅
@@ -8,6 +8,16 @@ export function useElementTree() {
 
 export function useElementTreeDispatch() {
   return useContext(ElementTreeDispatchContext);
+}
+
+export function useSelectedElementId() {
+  const { elementMap } = useElementTree();
+
+  const selectedElements = useMemo(() => {
+    return getSelectedElements(elementMap).map(e => e.id);
+  }, [elementMap]);
+
+  return selectedElements;
 }
 
 export function useSelectedElement() {

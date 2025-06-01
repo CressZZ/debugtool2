@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { parseDomToTree } from "./utils/parseDomToTree";
 import { DebugComponent } from "./component/DebugComponent";
-import { useElementTree, useElementTreeDispatch } from "./hooks/useElementTree";
+import { useElementTree, useElementTreeDispatch, useSelectedElement, useSelectedElementId } from "./hooks/useElementTree";
 import { useKeyEventWindow } from "./hooks/useKeyEventWindow";
 import { DebugBackground } from "./component/DebugBackground";
 import { DebugControlPanel } from "./component/DebugControlPanel";
@@ -25,6 +25,11 @@ function App({
 }: AppProps) {
   const { elementMap } = useElementTree();
   const ElementTreeDispatch = useElementTreeDispatch();
+  const selectedElementId = useSelectedElementId();
+
+  useEffect(() => {
+    // console.log(selectedElementId);
+  }, [selectedElementId]);
 
   const isMounted = useRef(false);
 
