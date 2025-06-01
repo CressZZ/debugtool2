@@ -8,10 +8,22 @@ export type ElementTreeActionsEtc = {
   setElementMap: (elementMap: ElementMap, rootElementId: ElementId[]) => void;
   toggleHiddenElement: (elementId: ElementId) => void;
   toggleHiddenAllElement: () => void;
+  reset: () => void;
 }
 
 export function createElementTreeActionsEtc(  set: StoreApi<ElementTreeState>["setState"], get: StoreApi<ElementTreeState>["getState"]) {
   return {
+    reset: () => {
+      set({
+        elementMap: {},
+        rootElementId: [],
+        history: {
+          past: [],
+          future: [],
+        },
+      });
+    },
+
     resetElementMap: () => {
       set((state: ElementTreeState) => {
         saveToHistory(state)

@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { useElementTreeStore } from './store/useElementTreeStore.ts'
 
 export type KitDebgOptions = {
   targetSelector: string;
@@ -15,6 +16,8 @@ export function kitDebg({targetSelector, background, extraTargetSelectors, exclu
 
   const onExit = () => {
     root.unmount();
+      // 🚀 store 리셋
+    useElementTreeStore.getState().reset();
     console.log('KitDebug 종료됨 🚀');
   }
   

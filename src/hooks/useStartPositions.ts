@@ -94,12 +94,17 @@ export function getMovePosition(
 ) {
   const { marginLeft, marginTop, transformX, transformY } = startPosition;
   if (positionType === 'margin') {
+console.log(transformY, transformX);
     return {
       marginLeft: `${marginLeft + dx}px`,
       marginTop: `${marginTop + dy}px`,
+      transformTranslateX: `${transformX}px`,
+      transformTranslateY: `${transformY}px`,
     };
   } else {
     return {
+      marginLeft: `${marginLeft}px`,
+      marginTop: `${marginTop}px`,
       transformTranslateX: `${transformX + dx}px`,
       transformTranslateY: `${transformY + dy}px`,
     };

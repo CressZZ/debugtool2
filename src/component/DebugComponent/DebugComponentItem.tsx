@@ -1,4 +1,4 @@
-import {  memo, type ReactNode } from "react";
+import {  memo, useRef, type ReactNode } from "react";
 import {  type DebugElement } from "../../types/elementTreeTypes";
 import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
 import { useElementTreeStore } from "../../store/useElementTreeStore";
@@ -109,9 +109,17 @@ export const DebugComponentBox = memo(function DebugComponentBox({ element, chil
   // const trasnformStyle = !transformTranslateX && !transformTranslateY ? '' : `translate(${transformTranslateX}, ${transformTranslateY})`;
   // const marginTopStyle = !marginTop ? '' : `margin-top: ${marginTop}px`;
   // const marginLeftStyle = !marginLeft ? '' : `margin-left: ${marginLeft}px`;
+  // console.log("transformTranslateX", transformTranslateX, transformTranslateY);
+  // const elementRef = useRef<HTMLDivElement>(null);
 
+  // if(elementRef.current) {
+  //   elementRef.current.style.transform = `translate(${transformTranslateX}, ${transformTranslateY})`;
+  // }
+
+  
   return (
     <div
+    // ref={elementRef}
       onMouseDown={(e) => onMouseDown(e, element)}
       style={{
         position: position as 'absolute' | 'relative' | 'fixed' | 'sticky' | 'static' | 'initial' | 'inherit',
@@ -125,9 +133,11 @@ export const DebugComponentBox = memo(function DebugComponentBox({ element, chil
         pointerEvents: pointerEvents === 'none' ? 'none' : 'auto',
         cursor: cursor,
         transform: `translate(${transformTranslateX}, ${transformTranslateY})`,
+
       }}
       data-id={element.id}
       data-class-name={element.className.join(" ")}
+      data-transform = {`translate(${transformTranslateX}, ${transformTranslateY})`}
     >
       {children}
     </div>

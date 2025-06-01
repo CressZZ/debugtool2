@@ -62,6 +62,10 @@ export function useMouseEventDebugComponentItem() {
   };
 
   const prepareMoveTargets = (e: React.MouseEvent, element: DebugElement) => {
+    if (rootElementId.includes(element.id)) {
+      return;
+    }
+
     let moveTargetElementIds = selectedElementIdsRef.current;
 
     console.log("moveTargetElementIds", moveTargetElementIds);
@@ -92,13 +96,18 @@ export function useMouseEventDebugComponentItem() {
 
     startPositionsRef.current = setStartPositions();
 
+    console.log("startPositionsRef.current", startPositionsRef.current);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
   };
 
   const applyTransformToTargets = (dx: number, dy: number) => {
     moveTargetElementsRef.current.forEach(el => {
-      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      const elementId = el.getAttribute("data-id")!;
+      const startPos = startPositionsRef.current[elementId];
+      
+      el.style.transform = `translate(${startPos.transformX + dx}px, ${startPos.transformY + dy}px)`;
+      
     });
   };
 
@@ -122,12 +131,14 @@ export function useMouseEventDebugComponentItem() {
       currentDy.current
     );
 
+    console.log("positionStyles", currentDx.current, currentDy.current);
     updateMultipleElementsStyle(positionStyles);
   };
 
   const clearTransform = () => {
     moveTargetElementsRef.current.forEach(el => {
-      el.style.transform = "";
+      const startPos = startPositionsRef.current[el.getAttribute("data-id")!];
+      el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`;
     });
 
     moveTargetElementsRef.current = [];
