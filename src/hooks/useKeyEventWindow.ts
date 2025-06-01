@@ -6,7 +6,9 @@ import { shallow, useShallow } from 'zustand/shallow';
 import {
   getCurrentPositions,
   getPositionScss,
+  setStartPositions,
   useStartPositions,
+
 } from "./useStartPositions";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
 import { useElementTreeStore } from "../store/useElementTreeStore";
@@ -16,7 +18,6 @@ import type { DebugElement, ElementId } from "../types/elementTreeTypes";
 export function useKeyEventWindow(targetSelector: string) {
   const selectedElement = useElementTreeStore(useShallow(selectedElementsSelector));
   const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
-  const { startPositions, setStartPositions } = useStartPositions();
 
   const elementMap = useElementTreeStore(state => state.elementMap);
   const rootElementId = useElementTreeStore(state => state.rootElementId);
@@ -49,6 +50,7 @@ export function useKeyEventWindow(targetSelector: string) {
   }, [selectedElement]);
 
   const handleKeydown = (e: KeyboardEvent) => {
+
     // console.log("handleKeydown", e);
     if ((e.metaKey || e.ctrlKey) && e.key === "s") {
       e.preventDefault();
@@ -66,109 +68,29 @@ export function useKeyEventWindow(targetSelector: string) {
       console.log(positionScss);
     }
 
-    if ((e.metaKey || e.ctrlKey) && e.key === "ArrowUp") {
-      // console.log("meta/ctrl + ArrowUp");
-      setStartPositions(selectedElementIdsRef.current);
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      e.preventDefault(); // 기본 스크롤 방지
 
-      onHandleArrowUpDown(
-        -100,
-        selectedElementIdsRef.current,
+      const elementMap = useElementTreeStore.getState().elementMap;
+      const selectedElementIds = Object.values(elementMap).filter(el => el.selected).map(el => el.id);
+    
+
+      const isMeta = e.metaKey || e.ctrlKey;
+    
+      const startPositions = setStartPositions();
+
+      handleArrowKey({
+        dx: e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0,
+        dy: e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0,
+        isMeta,
+        selectedElementIds: selectedElementIds,
         updateMultipleElementsStyle,
-        startPositions.current
-      );
-      return; // 핸들링했으면 return 해주는 것도 좋음
-    }
-
-    if ((e.metaKey || e.ctrlKey) && e.key === "ArrowDown") {
-      // console.log("meta/ctrl + ArrowDown");
-      setStartPositions(selectedElementIdsRef.current);
-
-      onHandleArrowUpDown(
-        100,
-        selectedElementIdsRef.current,
-        updateMultipleElementsStyle,
-        startPositions.current
-      );
+        startPositions: startPositions,
+      });
+    
       return;
     }
-
-    if ((e.metaKey || e.ctrlKey) && e.key === "ArrowLeft") {
-      // console.log("meta/ctrl + ArrowLeft");
-      setStartPositions(selectedElementIdsRef.current);
-
-      onHandleArrowLeftRight(
-        -100,
-        selectedElementIdsRef.current,
-        updateMultipleElementsStyle,
-        startPositions.current
-      );
-      return;
-    }
-
-    if ((e.metaKey || e.ctrlKey) && e.key === "ArrowRight") {
-      // console.log("meta/ctrl + ArrowRight");
-      setStartPositions(selectedElementIdsRef.current);
-
-      onHandleArrowLeftRight(
-        100,
-        selectedElementIdsRef.current,
-        updateMultipleElementsStyle,
-        startPositions.current
-      );
-      return;
-    }
-
-    if (e.key === "ArrowUp") {
-      // console.log("ArrowUp");
-      setStartPositions(selectedElementIdsRef.current);
-
-      onHandleArrowUpDown(
-        -1,
-        selectedElementIdsRef.current,
-        updateMultipleElementsStyle,
-        startPositions.current
-      );
-      return;
-    }
-
-    if (e.key === "ArrowDown") {
-      // console.log("ArrowDown");
-      setStartPositions(selectedElementIdsRef.current);
-
-      onHandleArrowUpDown(
-        1,
-        selectedElementIdsRef.current,
-        updateMultipleElementsStyle,
-        startPositions.current
-      );
-      return;
-    }
-
-    if (e.key === "ArrowLeft") {
-      // console.log("ArrowLeft");
-      setStartPositions(selectedElementIdsRef.current);
-
-      onHandleArrowLeftRight(
-        -1,
-        selectedElementIdsRef.current,
-        updateMultipleElementsStyle,
-        startPositions.current
-      );
-      return;
-    }
-
-    if (e.key === "ArrowRight") {
-      // console.log("ArrowRight");
-      setStartPositions(selectedElementIdsRef.current);
-
-      onHandleArrowLeftRight(
-        1,
-        selectedElementIdsRef.current,
-        updateMultipleElementsStyle,
-        startPositions.current
-      );
-      return;
-    }
+    
 
     if (e.key === "Escape") {
       selectedElementRef.current.forEach((element) => {
@@ -249,4 +171,39 @@ function onHandleArrowLeftRight(
   );
 
   updateMultipleElementsStyle(positionStyles)
+}
+
+
+function handleArrowKey({
+  dx = 0,
+  dy = 0,
+  isMeta = false,
+  selectedElementIds,
+  updateMultipleElementsStyle,
+  startPositions,
+}: {
+  dx?: number;
+  dy?: number;
+  isMeta?: boolean;
+  selectedElementIds: string[];
+  updateMultipleElementsStyle: (updates: Record<ElementId, Partial<DebugElement['style']>>) => void;
+  startPositions: Record<string, movePosition>;
+}) {
+  // Meta키 누른 경우는 크게 이동, 아니면 기본 이동
+  const deltaX = dx * (isMeta ? 100 : 1);
+  const deltaY = dy * (isMeta ? 100 : 1);
+
+  // 시작 위치 세팅
+  console.log("startPositions", startPositions)
+  console.log("selectedElementIds", selectedElementIds)
+  // 현재 위치 계산
+  const positionStyles = getCurrentPositions(
+    selectedElementIds,
+    startPositions,
+    deltaX,
+    deltaY
+  );
+
+  // 업데이트
+  updateMultipleElementsStyle(positionStyles);
 }

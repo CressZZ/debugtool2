@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useShallow } from 'zustand/shallow';
-import { getCurrentPositions, useStartPositions } from "./useStartPositions";
+import { getCurrentPositions, setStartPositions, useStartPositions } from "./useStartPositions";
 import type { DebugElement } from "../types/elementTreeTypes";
 import { useElementTreeStore } from "../store/useElementTreeStore";
 import { selectedElementIdsSelector } from "../store/elementTreeSelectors";
@@ -14,7 +14,7 @@ export type movePosition = {
 };
 
 export function useMouseEventDebugComponentItem() {
-  // const elementMap = useElementTreeStore(state => state.elementMap);
+
   const rootElementId = useElementTreeStore(state => state.rootElementId);
   const selectElement = useElementTreeStore(state => state.selectElement);
   const selectOnlyElement = useElementTreeStore(state => state.selectOnlyElement);
@@ -32,8 +32,7 @@ export function useMouseEventDebugComponentItem() {
   const startX = useRef(0);
   const startY = useRef(0);
 
-  const { startPositions, setStartPositions } = useStartPositions();
-
+  let startPositions: Record<string, movePosition> = {};
 
   const dragElementRef = useRef<HTMLElement | null>(null); // DOM 직접 참조용 ref
   const currentDx = useRef(0); // 누적 dx
@@ -70,7 +69,7 @@ export function useMouseEventDebugComponentItem() {
     currentDx.current = 0;
     currentDy.current = 0;
   
-    setStartPositions(selectedElementIds);
+    startPositions = setStartPositions();
   
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
@@ -100,7 +99,7 @@ export function useMouseEventDebugComponentItem() {
     // 🔥 드래그 끝났을 때만 Context 업데이트
     const positionStyles = getCurrentPositions(
       selectedElementIds,
-      startPositions.current,
+      startPositions,
       currentDx.current,
       currentDy.current
     );

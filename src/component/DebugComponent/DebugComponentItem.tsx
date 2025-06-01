@@ -6,7 +6,6 @@ import { useShallow } from "zustand/shallow";
 import { makeElementsByElementIdSelector } from "../../store/elementTreeSelectors";
 
 export const DebugComponentItem = memo(function DebugComponentItem({  elementId }: { elementId: string }) {
-  console.log("DebugComponentItem", elementId)
 
  const element = useElementTreeStore(useShallow(makeElementsByElementIdSelector(elementId)));
 
@@ -21,6 +20,7 @@ export const DebugComponentItem = memo(function DebugComponentItem({  elementId 
 
 export const DebugComponentBox = memo(function DebugComponentBox({ element, children }: { element: DebugElement, children?: React.ReactNode }) {
   const rootElementId = useElementTreeStore(state => state.rootElementId);
+
   console.log("DebugComponentBox", element.id)
   const defaultStyle = {
     outline: "2px solid red",
@@ -141,7 +141,7 @@ export function DebugComponentChildren({
 }) {
   // const elementMap = useElementTreeStore(state => state.elementMap);
 
-  console.log("DebugComponentChildren", element.id)
+  // console.log("DebugComponentChildren", element.id)
   if (!element.children?.length) return null;
 
   return (
