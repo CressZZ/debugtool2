@@ -13,7 +13,7 @@ import type { DebugElement, ElementId } from "../types/elementTreeTypes";
 
 export function useKeyEventWindow(targetSelector: string) {
   const selectedElement = useElementTreeStore(useShallow(selectedElementsSelector));
-  // const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
+  const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
 
   const elementMap = useElementTreeStore(state => state.elementMap);
   const rootElementId = useElementTreeStore(state => state.rootElementId);
@@ -26,6 +26,7 @@ export function useKeyEventWindow(targetSelector: string) {
   const redo = useElementTreeStore(state => state.redo);
 
   const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
+  const moveTargetElementsRef = useRef<HTMLElement[]>([]);
 
 
   // let startPositions: Record<string, movePosition> = {};
@@ -37,6 +38,10 @@ export function useKeyEventWindow(targetSelector: string) {
   const moveDeltaRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
 
 
+  // Keep selectedElementIds in ref
+  useEffect(() => {
+    selectedElementIdsRef.current = selectedElementIds;
+  }, [selectedElementIds]);
 
   useEffect(() => {
     elementMapRef.current = elementMap;
@@ -109,11 +114,17 @@ export function useKeyEventWindow(targetSelector: string) {
   const handleKeydownArrow = (e: KeyboardEvent) => {
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
 
+
+
       if(!isKeydownArrowing.current){
         isKeydownArrowing.current = true;
         startPositionsRef.current = setStartPositions();
 
-        selectedElementIdsRef.current = selectedElementIdsSelector(useElementTreeStore.getState());
+        moveTargetElementsRef.current = selectedElementIdsRef.current.map(id => {
+          return document.querySelector(`[data-id="${id}"]`) as HTMLElement;
+        }).filter(Boolean);
+
+        // selectedElementIdsRef.current = selectedElementIdsSelector(useElementTreeStore.getState());
       }
 
       e.preventDefault();
@@ -124,18 +135,42 @@ export function useKeyEventWindow(targetSelector: string) {
       const deltaX = (e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0) * (isMeta ? 100 : 1);
       const deltaY = (e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0) * (isMeta ? 100 : 1);
 
+      // if(isMeta) {
+      //   window.addEventListener("keydown", (e) => {
+      //     if (!(e.metaKey || e.ctrlKey) || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      //       // metaKey 가 풀린 상태 → 강제 finalize
+      //       handleCancelArrowKey();
+      //     }
+      //   });
+      // }
+
       // 누적 이동값 업데이트
       moveDeltaRef.current.dx += deltaX;
       moveDeltaRef.current.dy += deltaY;
 
 
       // DOM transform 임시 적용
-      handleArrowKeyPreview({
-        dx: moveDeltaRef.current.dx,
-        dy: moveDeltaRef.current.dy,
-        selectedElementIds: selectedElementIdsRef.current,
-      });
+      console.log("deltaX", deltaX, deltaY);
+      applyTransformToTargets();
     }
+  };
+
+  const handleCancelArrowKey = () => {
+    const positionStyles = getCurrentPositions(
+      selectedElementIdsRef.current,
+      startPositionsRef.current,
+      moveDeltaRef.current.dx,
+      moveDeltaRef.current.dy
+    );
+  
+    updateMultipleElementsStyle(positionStyles);
+
+    // 누적값 초기화
+    moveDeltaRef.current = { dx: 0, dy: 0 };
+
+    clearTransform();
+
+    isKeydownArrowing.current = false;
   };
 
   // 👉 방향키 keyup → store 업데이트
@@ -144,26 +179,7 @@ export function useKeyEventWindow(targetSelector: string) {
       e.preventDefault();
 
 
-      const positionStyles = getCurrentPositions(
-        selectedElementIdsRef.current,
-        startPositionsRef.current,
-        moveDeltaRef.current.dx,
-        moveDeltaRef.current.dy
-      );
-    
-      updateMultipleElementsStyle(positionStyles);
-
-      // 누적값 초기화
-      moveDeltaRef.current = { dx: 0, dy: 0 };
-
-      // transform 초기화
-      handleArrowKeyPreview({
-        dx: 0,
-        dy: 0,
-        selectedElementIds: selectedElementIdsRef.current,
-      });
-
-      isKeydownArrowing.current = false;
+      handleCancelArrowKey();
     }
   };
 
@@ -179,26 +195,23 @@ export function useKeyEventWindow(targetSelector: string) {
       window.removeEventListener("keyup", handleKeyupArrow);
     };
   }, []);
-}
 
+  const applyTransformToTargets = () => {
+    moveTargetElementsRef.current.forEach(el => {
+      const elementId = el.getAttribute("data-id")!;
+      const startPos = startPositionsRef.current[elementId];
+      
+      el.style.transform = `translate(${startPos.transformX + moveDeltaRef.current.dx}px, ${startPos.transformY + moveDeltaRef.current.dy}px)`;
+    });
+  };
+  
+  const clearTransform = () => {
+    moveTargetElementsRef.current.forEach(el => {
+      const startPos = startPositionsRef.current[el.getAttribute("data-id")!];
+      el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`;
+    });
 
+    moveTargetElementsRef.current = [];
+  };
 
-// DOM에 임시 transform 적용용
-function handleArrowKeyPreview({
-  dx,
-  dy,
-  selectedElementIds,
-}: {
-  dx: number;
-  dy: number;
-  selectedElementIds: string[];
-}) {
-
-  selectedElementIds.forEach((id) => {
-    const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement | null;
-
-    if (el) {
-      el.style.transform = `translate(${dx}px, ${dy}px)`;
-    }
-  });
 }

@@ -101,12 +101,12 @@ export function useMouseEventDebugComponentItem() {
     window.addEventListener("mouseup", handleMouseUp);
   };
 
-  const applyTransformToTargets = (dx: number, dy: number) => {
+  const applyTransformToTargets = () => {
     moveTargetElementsRef.current.forEach(el => {
       const elementId = el.getAttribute("data-id")!;
       const startPos = startPositionsRef.current[elementId];
       
-      el.style.transform = `translate(${startPos.transformX + dx}px, ${startPos.transformY + dy}px)`;
+      el.style.transform = `translate(${startPos.transformX + currentDx.current}px, ${startPos.transformY + currentDy.current}px)`;
       
     });
   };
@@ -165,7 +165,7 @@ export function useMouseEventDebugComponentItem() {
     currentDx.current = dx;
     currentDy.current = dy;
 
-    applyTransformToTargets(dx, dy);
+    applyTransformToTargets();
   };
 
   const handleMouseUp = (e: MouseEvent) => {

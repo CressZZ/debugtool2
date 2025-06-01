@@ -33,7 +33,7 @@ export const DebugComponentBox = memo(function DebugComponentBox({ element, chil
 
   const selectedStyle = {
     outline: "2px solid green",
-    opacity: '0.8',
+    opacity: '0.6',
     zIndex: '1000',
     backgroundColor: 'rgba(57, 173, 106, 0.6)', 
     pointerEvents: 'auto',
@@ -65,6 +65,8 @@ export const DebugComponentBox = memo(function DebugComponentBox({ element, chil
   const rootStyle = {
     // pointerEvents: 'none',
     cursor:'default',
+    backgroundColor: 'transparent',
+    opacity: '1'
   }
 
   let currentStyle = { ...element.style, ...defaultStyle };
