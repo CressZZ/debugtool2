@@ -8,11 +8,12 @@ import {
   useStartPositions,
 } from "./useStartPositions";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
-import { selectedElementsSelector, useElementTreeStore } from "../store/useElementTreeStore";
+import { selectedElementIdsSelector, selectedElementsSelector, useElementTreeStore } from "../store/useElementTreeStore";
 import type { DebugElement, ElementId } from "../types/elementTreeTypes";
 
 export function useKeyEventWindow(targetSelector: string) {
   const selectedElement = useElementTreeStore(selectedElementsSelector);
+  const selectedElementIds = useElementTreeStore(selectedElementIdsSelector);
   const { startPositions, setStartPositions } = useStartPositions();
 
   const elementMap = useElementTreeStore(state => state.elementMap);
@@ -26,6 +27,12 @@ export function useKeyEventWindow(targetSelector: string) {
   const redo = useElementTreeStore(state => state.redo);
 
   const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
+
+  const selectedElementIdsRef = useRef(selectedElementIds);
+
+  useEffect(() => {
+    selectedElementIdsRef.current = selectedElementIds;
+  }, [selectedElementIds]);
 
   useEffect(() => {
     elementMapRef.current = elementMap;
@@ -59,11 +66,11 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if ((e.metaKey || e.ctrlKey) && e.key === "ArrowUp") {
       // console.log("meta/ctrl + ArrowUp");
-      setStartPositions(selectedElementRef.current);
+      setStartPositions(selectedElementIdsRef.current);
 
       onHandleArrowUpDown(
         -100,
-        selectedElementRef.current,
+        selectedElementIdsRef.current,
         updateMultipleElementsStyle,
         startPositions.current
       );
@@ -72,11 +79,11 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if ((e.metaKey || e.ctrlKey) && e.key === "ArrowDown") {
       // console.log("meta/ctrl + ArrowDown");
-      setStartPositions(selectedElementRef.current);
+      setStartPositions(selectedElementIdsRef.current);
 
       onHandleArrowUpDown(
         100,
-        selectedElementRef.current,
+        selectedElementIdsRef.current,
         updateMultipleElementsStyle,
         startPositions.current
       );
@@ -85,11 +92,11 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if ((e.metaKey || e.ctrlKey) && e.key === "ArrowLeft") {
       // console.log("meta/ctrl + ArrowLeft");
-      setStartPositions(selectedElementRef.current);
+      setStartPositions(selectedElementIdsRef.current);
 
       onHandleArrowLeftRight(
         -100,
-        selectedElementRef.current,
+        selectedElementIdsRef.current,
         updateMultipleElementsStyle,
         startPositions.current
       );
@@ -98,11 +105,11 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if ((e.metaKey || e.ctrlKey) && e.key === "ArrowRight") {
       // console.log("meta/ctrl + ArrowRight");
-      setStartPositions(selectedElementRef.current);
+      setStartPositions(selectedElementIdsRef.current);
 
       onHandleArrowLeftRight(
         100,
-        selectedElementRef.current,
+        selectedElementIdsRef.current,
         updateMultipleElementsStyle,
         startPositions.current
       );
@@ -111,11 +118,11 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if (e.key === "ArrowUp") {
       // console.log("ArrowUp");
-      setStartPositions(selectedElementRef.current);
+      setStartPositions(selectedElementIdsRef.current);
 
       onHandleArrowUpDown(
         -1,
-        selectedElementRef.current,
+        selectedElementIdsRef.current,
         updateMultipleElementsStyle,
         startPositions.current
       );
@@ -124,11 +131,11 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if (e.key === "ArrowDown") {
       // console.log("ArrowDown");
-      setStartPositions(selectedElementRef.current);
+      setStartPositions(selectedElementIdsRef.current);
 
       onHandleArrowUpDown(
         1,
-        selectedElementRef.current,
+        selectedElementIdsRef.current,
         updateMultipleElementsStyle,
         startPositions.current
       );
@@ -137,11 +144,11 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if (e.key === "ArrowLeft") {
       // console.log("ArrowLeft");
-      setStartPositions(selectedElementRef.current);
+      setStartPositions(selectedElementIdsRef.current);
 
       onHandleArrowLeftRight(
         -1,
-        selectedElementRef.current,
+        selectedElementIdsRef.current,
         updateMultipleElementsStyle,
         startPositions.current
       );
@@ -150,11 +157,11 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if (e.key === "ArrowRight") {
       // console.log("ArrowRight");
-      setStartPositions(selectedElementRef.current);
+      setStartPositions(selectedElementIdsRef.current);
 
       onHandleArrowLeftRight(
         1,
-        selectedElementRef.current,
+        selectedElementIdsRef.current,
         updateMultipleElementsStyle,
         startPositions.current
       );
@@ -212,12 +219,12 @@ export function useKeyEventWindow(targetSelector: string) {
 
 function onHandleArrowUpDown(
   dy: number,
-  selectedElement: DebugElement[],
+  selectedElementIds: string[],
   updateMultipleElementsStyle: (updates: Record<ElementId, Partial<DebugElement['style']>>) => void,
   startPositions: Record<string, movePosition>
 ) {
   const positionStyles = getCurrentPositions(
-    selectedElement,
+    selectedElementIds,
     startPositions,
     0,
     dy
@@ -228,12 +235,12 @@ function onHandleArrowUpDown(
 
 function onHandleArrowLeftRight(
   dx: number,
-  selectedElement: DebugElement[],
+  selectedElementIds: string[],
   updateMultipleElementsStyle: (updates: Record<ElementId, Partial<DebugElement['style']>>) => void,
   startPositions: Record<string, movePosition>
 ) {
   const positionStyles = getCurrentPositions(
-    selectedElement,
+    selectedElementIds,
     startPositions,
     dx,
     0

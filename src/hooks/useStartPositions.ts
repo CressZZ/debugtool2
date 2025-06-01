@@ -2,13 +2,18 @@ import { useRef } from "react";
 
 import type { movePosition } from "./useMouseEventDebugComponentItem";
 import type { DebugElement } from "../types/elementTreeTypes";
+import { useElementTreeStore } from "../store/useElementTreeStore";
 
 export function useStartPositions() {
+  // const elementMap = useElementTreeStore(state => state.elementMap);
   const startPositions = useRef<Record<string, movePosition>>({});
 
-  const setStartPositions = (selectedElements: DebugElement[]) => {
+  const setStartPositions = (selectedElementIds: string[]) => {
+    const elementMap = useElementTreeStore.getState().elementMap;
+
     startPositions.current = {};
-    selectedElements.forEach(el => {
+    selectedElementIds.forEach(id => {
+      const el = elementMap[id];
       startPositions.current[el.id] = {
         marginLeft: parseFloat(el.style.marginLeft || "0"),
         marginTop: parseFloat(el.style.marginTop || "0"),
@@ -25,10 +30,12 @@ export function useStartPositions() {
   };
 }
 
-export function getCurrentPositions(selectedElement: DebugElement[], startPositions: Record<string, movePosition>, dx: number, dy: number) {
+export function getCurrentPositions(selectedElementIds: string[], startPositions: Record<string, movePosition>, dx: number, dy: number) {
   const styles: Record<string, Partial<DebugElement["style"]>> = {};
+  const elementMap = useElementTreeStore.getState().elementMap;
 
-  selectedElement.forEach(el => {
+  selectedElementIds.forEach(id => {
+    const el = elementMap[id];
     styles[el.id] = getMovePosition(startPositions[el.id], dx, dy, el.positionType);
   });
 
@@ -53,7 +60,7 @@ export function getMovePosition(startPosition: movePosition, dx: number, dy: num
     }
   }
 }
-export function getPositionScss(elementMap: ElementMap, rootElementIds: ElementId[], targetSelector: string) {
+export function getPositionScss(elementMap: Record<string, DebugElement>, rootElementIds: string[], targetSelector: string) {
   const lines: string[] = [];
 
   const makeClassSelector = (element: DebugElement) => {

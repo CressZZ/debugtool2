@@ -320,3 +320,14 @@ export const selectedElementsSelector = createSelector(
     return Object.values(elementMap).filter(el => el.selected);
   }
 );
+
+
+export const selectedElementIdsSelector = createSelector(
+  // input selector
+  (state: ElementTreeState) => state.elementMap,
+  
+  // output 계산 함수
+  (elementMap) => {
+    return Object.values(elementMap).filter(el => el.selected).map(el => el.id);
+  }
+);

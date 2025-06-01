@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { getCurrentPositions, useStartPositions } from "./useStartPositions";
 import type { DebugElement } from "../types/elementTreeTypes";
-import { selectedElementsSelector, useElementTreeStore } from "../store/useElementTreeStore";
+import { selectedElementIdsSelector, selectedElementsSelector, useElementTreeStore } from "../store/useElementTreeStore";
 
 export type movePosition = {
   marginLeft: number;
@@ -20,6 +20,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
   const unselectAllElement = useElementTreeStore(state => state.unselectAllElement);
   const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
   const selectedElement = useElementTreeStore(selectedElementsSelector);
+  const selectedElementIds = useElementTreeStore(selectedElementIdsSelector);
 
   const selectedElementRef = useRef(selectedElement);
 
@@ -37,7 +38,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
   const dragElementRef = useRef<HTMLElement | null>(null); // DOM 직접 참조용 ref
   const currentDx = useRef(0); // 누적 dx
   const currentDy = useRef(0); // 누적 dy
-  
+
   const onMouseDown = useCallback((e: React.MouseEvent, element: DebugElement) => {
     e.stopPropagation();
   
@@ -68,7 +69,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
     currentDx.current = 0;
     currentDy.current = 0;
   
-    setStartPositions(selectedElementRef.current);
+    setStartPositions(selectedElementIds);
   
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
@@ -96,7 +97,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
 
     // 🔥 드래그 끝났을 때만 Context 업데이트
     const positionStyles = getCurrentPositions(
-      selectedElement,
+      selectedElementIds,
       startPositions.current,
       currentDx.current,
       currentDy.current

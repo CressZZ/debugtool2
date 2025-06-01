@@ -18,7 +18,7 @@ export const DebugComponentItem = memo(function DebugComponentItem({  element }:
 export function DebugComponentBox({ element, children }: { element: DebugElement; children: ReactNode }) {
 
   const rootElementId = useElementTreeStore(state => state.rootElementId);
-  // console.log("DebugComponentBox", element.id)
+  console.log("DebugComponentBox", element.id)
   const defaultStyle = {
     outline: "2px solid red",
     backgroundColor: 'transparent',
