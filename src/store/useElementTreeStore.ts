@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import type { ElementId, DebugElement, ElementMap } from '../types/elementTreeTypes';
 import { devtools } from 'zustand/middleware';
 import { createSelector } from 'reselect';
+import { shallow } from 'zustand/shallow';
 
 // --- Helper ---
 export function saveToHistory(state: { history: History; elementMap: ElementMap }, max = 200) {
@@ -321,13 +322,28 @@ export const selectedElementsSelector = createSelector(
   }
 );
 
+// export const selectedElementsSelector = (state: ElementTreeState) =>{
+//   return Object.values(state.elementMap).filter(el => el.selected);
+// }
 
-export const selectedElementIdsSelector = createSelector(
-  // input selector
-  (state: ElementTreeState) => state.elementMap,
+// export const selectedElementIdsSelector = createSelector(
+//   // input selector
+//   (state: ElementTreeState) => state.elementMap,
   
-  // output 계산 함수
-  (elementMap) => {
-    return Object.values(elementMap).filter(el => el.selected).map(el => el.id);
-  }
-);
+//   // output 계산 함수
+//   (elementMap) => {
+//     return Object.values(elementMap).filter(el => el.selected).map(el => el.id);
+//   }
+// );
+
+export const selectedElementIdsSelector = (state: ElementTreeState) =>{
+  return Object.values(state.elementMap).filter(el => el.selected).map(el => el.id);
+}
+
+
+export const makeElementsByElementIdSelector = (elementId: string) =>
+  createSelector(
+    (state: ElementTreeState) => state.elementMap,
+    (elementMap) => elementMap[elementId]
+
+  );

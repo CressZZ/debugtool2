@@ -1,10 +1,13 @@
 import {  memo, type ReactNode } from "react";
 import {  type DebugElement } from "../../types/elementTreeTypes";
 import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
-import { useElementTreeStore } from "../../store/useElementTreeStore";
+import { makeElementsByElementIdSelector, useElementTreeStore } from "../../store/useElementTreeStore";
+import { useShallow } from "zustand/shallow";
 
-export const DebugComponentItem = memo(function DebugComponentItem({  element }: { element: DebugElement }) {
-  console.log("DebugComponentItem", element.id)
+export const DebugComponentItem = memo(function DebugComponentItem({  elementId }: { elementId: string }) {
+  console.log("DebugComponentItem", elementId)
+
+ const element = useElementTreeStore(useShallow(makeElementsByElementIdSelector(elementId)));
 
   return (
     <DebugComponentBox element={element}  >
@@ -15,8 +18,7 @@ export const DebugComponentItem = memo(function DebugComponentItem({  element }:
 
 // 감싸고 있는놈
 
-export function DebugComponentBox({ element, children }: { element: DebugElement; children: ReactNode }) {
-
+export const DebugComponentBox = memo(function DebugComponentBox({ element, children }: { element: DebugElement, children?: React.ReactNode }) {
   const rootElementId = useElementTreeStore(state => state.rootElementId);
   console.log("DebugComponentBox", element.id)
   const defaultStyle = {
@@ -95,7 +97,9 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
     right, bottom
   } = currentStyle;
 
-  const { onMouseDown } = useMouseEventDebugComponentItem({ elementId: element.id, });
+  // const element = useElementTreeStore(makeElementsByElementIdSelector(element.id));
+  // console.log("selectedElementsByElementId", selectedElementsByElementId)
+  const { onMouseDown } = useMouseEventDebugComponentItem();
 
 
   // positionType 에 따라 다르게 처리
@@ -125,7 +129,8 @@ export function DebugComponentBox({ element, children }: { element: DebugElement
       {children}
     </div>
   );
-}
+});
+
 
 // 순환 돌리는 녀석
 export function DebugComponentChildren({
@@ -133,14 +138,15 @@ export function DebugComponentChildren({
 }: {
   element: DebugElement;
 }) {
-  const elementMap = useElementTreeStore(state => state.elementMap);
+  // const elementMap = useElementTreeStore(state => state.elementMap);
 
+  console.log("DebugComponentChildren", element.id)
   if (!element.children?.length) return null;
 
   return (
     <>
       {element.children.map((childId) => (
-        <DebugComponentItem key={childId}  element={elementMap[childId]} />
+        <DebugComponentItem key={childId}  elementId={childId} />
       ))}
     </>
   );

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
-
+import { shallow, useShallow } from 'zustand/shallow';
 import { getCurrentPositions, useStartPositions } from "./useStartPositions";
 import type { DebugElement } from "../types/elementTreeTypes";
-import { selectedElementIdsSelector, selectedElementsSelector, useElementTreeStore } from "../store/useElementTreeStore";
+import { selectedElementIdsSelector, useElementTreeStore } from "../store/useElementTreeStore";
 
 export type movePosition = {
   marginLeft: number;
@@ -12,21 +12,20 @@ export type movePosition = {
   positionType: 'margin' | 'transform';
 };
 
-export function useMouseEventDebugComponentItem({ elementId }: { elementId: string }) {
-  const elementMap = useElementTreeStore(state => state.elementMap);
+export function useMouseEventDebugComponentItem() {
+  // const elementMap = useElementTreeStore(state => state.elementMap);
   const rootElementId = useElementTreeStore(state => state.rootElementId);
   const selectElement = useElementTreeStore(state => state.selectElement);
   const selectOnlyElement = useElementTreeStore(state => state.selectOnlyElement);
   const unselectAllElement = useElementTreeStore(state => state.unselectAllElement);
   const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
-  const selectedElement = useElementTreeStore(selectedElementsSelector);
-  const selectedElementIds = useElementTreeStore(selectedElementIdsSelector);
+  const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
 
-  const selectedElementRef = useRef(selectedElement);
+  const dragElementsRef = useRef<HTMLElement[]>([]);
 
-  useEffect(() => {
-    selectedElementRef.current = selectedElement;
-  }, [selectedElement]);
+  dragElementsRef.current = selectedElementIds.map(id => {
+    return document.querySelector(`[data-id="${id}"]`) as HTMLElement;
+  }).filter(Boolean); // null 제거
 
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -39,7 +38,8 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
   const currentDx = useRef(0); // 누적 dx
   const currentDy = useRef(0); // 누적 dy
 
-  const onMouseDown = useCallback((e: React.MouseEvent, element: DebugElement) => {
+  const onMouseDown = (e: React.MouseEvent, element: DebugElement) => {
+    console.log("onMouseDown", element.id)
     e.stopPropagation();
   
     const isMetaPressed = e.metaKey;
@@ -57,7 +57,7 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
       unselectAllElement();
     }
   
-    if (!elementMap[elementId].selected) return;
+    if (!element.selected) return;
   
     // DOM 참조 설정
     dragElementRef.current = document.querySelector(`[data-id="${element.id}"]`) as HTMLElement;
@@ -73,21 +73,22 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
   
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
-  }, [elementId, elementMap, rootElementId, selectElement, selectOnlyElement, unselectAllElement, setStartPositions]);
+  };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging.current) return;
 
     const dx = e.clientX - startX.current;
     const dy = e.clientY - startY.current;
-
+  
     currentDx.current = dx;
     currentDy.current = dy;
-
-    // ✅ DOM 직접 transform 적용
-    if (dragElementRef.current) {
-      dragElementRef.current.style.transform = `translate(${dx}px, ${dy}px)`;
-    }
+  
+    // console.log("handleMouseMove", dragElementsRef.current)
+    // ✅ 모든 선택된 요소 transform 적용
+    dragElementsRef.current.forEach(el => {
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
   };
 
   const handleMouseUp = () => {
@@ -106,12 +107,11 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
     updateMultipleElementsStyle(positionStyles);
 
     // DOM transform 초기화
-    if (dragElementRef.current) {
-      dragElementRef.current.style.transform = "";
-    }
-
-    dragElementRef.current = null;
-
+    dragElementsRef.current.forEach(el => {
+      el.style.transform = "";
+    });
+    
+    dragElementsRef.current = [];
     window.removeEventListener("mousemove", handleMouseMove);
     window.removeEventListener("mouseup", handleMouseUp);
   };
