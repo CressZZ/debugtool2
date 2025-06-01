@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
-import { useElementTree, useElementTreeDispatch, useSelectedElement } from "./useElementTree";
+import { useCallback, useEffect, useRef } from "react";
 
 import { getCurrentPositions, useStartPositions } from "./useStartPositions";
-import type { DebugElement } from "../context/ElementTreeContext";
+import type { DebugElement } from "../types/elementTreeTypes";
+import { selectedElementsSelector, useElementTreeStore } from "../store/useElementTreeStore";
 
 export type movePosition = {
   marginLeft: number;
@@ -13,9 +13,19 @@ export type movePosition = {
 };
 
 export function useMouseEventDebugComponentItem({ elementId }: { elementId: string }) {
-  const dispatch = useElementTreeDispatch();
-  const { elementMap, rootElementId } = useElementTree();
-  const selectedElement = useSelectedElement();
+  const elementMap = useElementTreeStore(state => state.elementMap);
+  const rootElementId = useElementTreeStore(state => state.rootElementId);
+  const selectElement = useElementTreeStore(state => state.selectElement);
+  const selectOnlyElement = useElementTreeStore(state => state.selectOnlyElement);
+  const unselectAllElement = useElementTreeStore(state => state.unselectAllElement);
+  const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
+  const selectedElement = useElementTreeStore(selectedElementsSelector);
+
+  const selectedElementRef = useRef(selectedElement);
+
+  useEffect(() => {
+    selectedElementRef.current = selectedElement;
+  }, [selectedElement]);
 
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -23,50 +33,46 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
 
   const { startPositions, setStartPositions } = useStartPositions();
 
-  const selectedElementRef = useRef(selectedElement);
+
   const dragElementRef = useRef<HTMLElement | null>(null); // DOM 직접 참조용 ref
   const currentDx = useRef(0); // 누적 dx
   const currentDy = useRef(0); // 누적 dy
-
-  useEffect(() => {
-    selectedElementRef.current = selectedElement;
-  }, [selectedElement]);
-
-  const onMouseDown = (e: React.MouseEvent, element: DebugElement) => {
+  
+  const onMouseDown = useCallback((e: React.MouseEvent, element: DebugElement) => {
     e.stopPropagation();
-
+  
     const isMetaPressed = e.metaKey;
     const isCtrlPressed = e.ctrlKey;
-
+  
     if (isMetaPressed || isCtrlPressed) {
-      dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
+      selectElement(element.id);
     } else {
       if (!element.selected) {
-        dispatch({ type: "SELECT_ONLY_ELEMENT", payload: { elementId: element.id } });
+        selectOnlyElement(element.id);
       }
     }
-
+  
     if (rootElementId.includes(element.id)) {
-      dispatch({ type: "UNSELECT_ALL_ELEMENT" });
+      unselectAllElement();
     }
-
+  
     if (!elementMap[elementId].selected) return;
-
-    // ** DOM 참조 설정 **
+  
+    // DOM 참조 설정
     dragElementRef.current = document.querySelector(`[data-id="${element.id}"]`) as HTMLElement;
-
+  
     isDragging.current = true;
-
+  
     startX.current = e.clientX;
     startY.current = e.clientY;
     currentDx.current = 0;
     currentDy.current = 0;
-
+  
     setStartPositions(selectedElementRef.current);
-
+  
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
-  };
+  }, [elementId, elementMap, rootElementId, selectElement, selectOnlyElement, unselectAllElement, setStartPositions]);
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging.current) return;
@@ -90,16 +96,13 @@ export function useMouseEventDebugComponentItem({ elementId }: { elementId: stri
 
     // 🔥 드래그 끝났을 때만 Context 업데이트
     const positionStyles = getCurrentPositions(
-      selectedElementRef.current,
+      selectedElement,
       startPositions.current,
       currentDx.current,
       currentDy.current
     );
 
-    dispatch({
-      type: "UPDATE_MULTIPLE_ELEMENTS_STYLE",
-      payload: positionStyles,
-    });
+    updateMultipleElementsStyle(positionStyles);
 
     // DOM transform 초기화
     if (dragElementRef.current) {

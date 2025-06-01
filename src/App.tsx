@@ -1,12 +1,14 @@
 import { useEffect, useRef } from "react";
 import { parseDomToTree } from "./utils/parseDomToTree";
 import { DebugComponent } from "./component/DebugComponent";
-import { useElementTree, useElementTreeDispatch, useSelectedElement, useSelectedElementId } from "./hooks/useElementTree";
+
+
 import { useKeyEventWindow } from "./hooks/useKeyEventWindow";
 import { DebugBackground } from "./component/DebugBackground";
 import { DebugControlPanel } from "./component/DebugControlPanel";
 import { useDebugerWrapperStyle } from "./hooks/useDebugerWrapperStyle";
 import throttle from "lodash.throttle";
+import { useElementTreeStore } from "./store/useElementTreeStore";
 
 type AppProps = {
   targetSelector: string;
@@ -19,50 +21,44 @@ type AppProps = {
 function App({
   targetSelector,
   background,
-  extraTargetSelectors,
+
   excludeTargetSelector = [],
   onExit,
 }: AppProps) {
-  const { elementMap } = useElementTree();
-  const ElementTreeDispatch = useElementTreeDispatch();
-  const selectedElementId = useSelectedElementId();
-
-  useEffect(() => {
-    // console.log(selectedElementId);
-  }, [selectedElementId]);
-
+  const elementMap  = useElementTreeStore(state => state.elementMap);
+  const setElementMap = useElementTreeStore(state => state.setElementMap);
+  const resetElementMap = useElementTreeStore(state => state.resetElementMap);
+  
   const isMounted = useRef(false);
 
-  const setElementMap = () => {
+  const setElementMapInit = () => {
     const ParsedElementTree = parseDomToTree(
       document.querySelector(targetSelector)!,
       excludeTargetSelector
     );
 
-    ElementTreeDispatch({
-      type: "SET_ELEMENT_MAP",
-      payload: {
-        elementMap: ParsedElementTree.elementMap,
-        rootElementId: ParsedElementTree.rootElementId,
-      },
-    });
+    setElementMap(
+      ParsedElementTree.elementMap,
+      ParsedElementTree.rootElementId,
+    );
   }
 
   useEffect(() => {
+
   }, [elementMap]);
 
   useEffect(() => {
     if (isMounted.current) return;
     isMounted.current = true;
 
-    setElementMap();
-  });
+    setElementMapInit();
+  }, []);
 
   useEffect(() => {
     const handleResize = throttle(() => {
-      ElementTreeDispatch({ type: "RESET_ELEMENT_MAP" });
-  
-      setElementMap();
+      resetElementMap();
+
+      setElementMapInit();
     }, 200); // 200ms throttle (원하면 숫자 조절 가능)
   
     window.addEventListener('resize', handleResize);
@@ -84,7 +80,7 @@ function App({
     if (target) {
       const handleWheel = (e: WheelEvent) => {
         e.stopPropagation();
-        // console.log("kitDebgRoot wheel", e);
+
       };
 
       target.addEventListener("wheel", handleWheel, { passive: false });

@@ -1,29 +1,31 @@
-import { useEffect, useRef, type Dispatch } from "react";
-import {
-  useElementTree,
-  useElementTreeDispatch,
-  useSelectedElement,
-} from "./useElementTree";
+import { useEffect, useRef } from "react";
 
-import type {
-  DebugElement,
-  ElementTreeAction,
-} from "../context/ElementTreeContext";
+
+
 import {
   getCurrentPositions,
   getPositionScss,
   useStartPositions,
 } from "./useStartPositions";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
+import { selectedElementsSelector, useElementTreeStore } from "../store/useElementTreeStore";
+import type { DebugElement, ElementId } from "../types/elementTreeTypes";
 
 export function useKeyEventWindow(targetSelector: string) {
-  const dispatch = useElementTreeDispatch();
-  const selectedElement = useSelectedElement();
+  const selectedElement = useElementTreeStore(selectedElementsSelector);
   const { startPositions, setStartPositions } = useStartPositions();
 
-  const { elementMap, rootElementId } = useElementTree();
+  const elementMap = useElementTreeStore(state => state.elementMap);
+  const rootElementId = useElementTreeStore(state => state.rootElementId);
   const elementMapRef = useRef(elementMap);
   const rootElementIdRef = useRef(rootElementId);
+  const unselectElement = useElementTreeStore(state => state.unselectElement);
+  const toggleHiddenAllElement = useElementTreeStore(state => state.toggleHiddenAllElement);
+  const toggleHiddenElement = useElementTreeStore(state => state.toggleHiddenElement);
+  const undo = useElementTreeStore(state => state.undo);
+  const redo = useElementTreeStore(state => state.redo);
+
+  const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
 
   useEffect(() => {
     elementMapRef.current = elementMap;
@@ -62,7 +64,7 @@ export function useKeyEventWindow(targetSelector: string) {
       onHandleArrowUpDown(
         -100,
         selectedElementRef.current,
-        dispatch,
+        updateMultipleElementsStyle,
         startPositions.current
       );
       return; // 핸들링했으면 return 해주는 것도 좋음
@@ -75,7 +77,7 @@ export function useKeyEventWindow(targetSelector: string) {
       onHandleArrowUpDown(
         100,
         selectedElementRef.current,
-        dispatch,
+        updateMultipleElementsStyle,
         startPositions.current
       );
       return;
@@ -88,7 +90,7 @@ export function useKeyEventWindow(targetSelector: string) {
       onHandleArrowLeftRight(
         -100,
         selectedElementRef.current,
-        dispatch,
+        updateMultipleElementsStyle,
         startPositions.current
       );
       return;
@@ -101,7 +103,7 @@ export function useKeyEventWindow(targetSelector: string) {
       onHandleArrowLeftRight(
         100,
         selectedElementRef.current,
-        dispatch,
+        updateMultipleElementsStyle,
         startPositions.current
       );
       return;
@@ -114,7 +116,7 @@ export function useKeyEventWindow(targetSelector: string) {
       onHandleArrowUpDown(
         -1,
         selectedElementRef.current,
-        dispatch,
+        updateMultipleElementsStyle,
         startPositions.current
       );
       return;
@@ -127,7 +129,7 @@ export function useKeyEventWindow(targetSelector: string) {
       onHandleArrowUpDown(
         1,
         selectedElementRef.current,
-        dispatch,
+        updateMultipleElementsStyle,
         startPositions.current
       );
       return;
@@ -140,7 +142,7 @@ export function useKeyEventWindow(targetSelector: string) {
       onHandleArrowLeftRight(
         -1,
         selectedElementRef.current,
-        dispatch,
+        updateMultipleElementsStyle,
         startPositions.current
       );
       return;
@@ -153,7 +155,7 @@ export function useKeyEventWindow(targetSelector: string) {
       onHandleArrowLeftRight(
         1,
         selectedElementRef.current,
-        dispatch,
+        updateMultipleElementsStyle,
         startPositions.current
       );
       return;
@@ -161,10 +163,7 @@ export function useKeyEventWindow(targetSelector: string) {
 
     if (e.key === "Escape") {
       selectedElementRef.current.forEach((element) => {
-        dispatch({
-          type: "UNSELECT_ELEMENT",
-          payload: { elementId: element.id },
-        });
+        unselectElement(element.id);
       });
       return;
     }
@@ -173,18 +172,13 @@ export function useKeyEventWindow(targetSelector: string) {
       (e.metaKey || e.ctrlKey) &&
       (e.key === "h" || e.key === "H" || e.key === "ㅗ")
     ) {
-      dispatch({
-        type: "TOGGLE_HIDDEN_ALL_ELEMENT",
-      });
+      toggleHiddenAllElement();
       return;
     }
 
     if (e.key === "h" || e.key === "H" || e.key === "ㅗ") {
       selectedElementRef.current.forEach((element) => {
-        dispatch({
-          type: "TOGGLE_HIDDEN_ELEMENT",
-          payload: { elementId: element.id },
-        });
+        toggleHiddenElement(element.id);
       });
       return;
     }
@@ -194,9 +188,7 @@ export function useKeyEventWindow(targetSelector: string) {
       e.shiftKey &&
       (e.key === "z" || e.key === "Z" || e.key === "ㅈ")
     ) {
-      dispatch({
-        type: "REDO",
-      });
+      redo();
       return;
     }
 
@@ -204,9 +196,7 @@ export function useKeyEventWindow(targetSelector: string) {
       (e.metaKey || e.ctrlKey) &&
       (e.key === "z" || e.key === "Z" || e.key === "ㅈ")
     ) {
-      dispatch({
-        type: "UNDO",
-      });
+      undo();
       return;
     }
   };
@@ -223,7 +213,7 @@ export function useKeyEventWindow(targetSelector: string) {
 function onHandleArrowUpDown(
   dy: number,
   selectedElement: DebugElement[],
-  dispatch: Dispatch<ElementTreeAction>,
+  updateMultipleElementsStyle: (updates: Record<ElementId, Partial<DebugElement['style']>>) => void,
   startPositions: Record<string, movePosition>
 ) {
   const positionStyles = getCurrentPositions(
@@ -233,16 +223,13 @@ function onHandleArrowUpDown(
     dy
   );
 
-  dispatch({
-    type: "UPDATE_MULTIPLE_ELEMENTS_STYLE",
-    payload: positionStyles,
-  });
+  updateMultipleElementsStyle(positionStyles);
 }
 
 function onHandleArrowLeftRight(
   dx: number,
   selectedElement: DebugElement[],
-  dispatch: Dispatch<ElementTreeAction>,
+  updateMultipleElementsStyle: (updates: Record<ElementId, Partial<DebugElement['style']>>) => void,
   startPositions: Record<string, movePosition>
 ) {
   const positionStyles = getCurrentPositions(
@@ -252,8 +239,5 @@ function onHandleArrowLeftRight(
     0
   );
 
-  dispatch({
-    type: "UPDATE_MULTIPLE_ELEMENTS_STYLE",
-    payload: positionStyles,
-  });
+  updateMultipleElementsStyle(positionStyles)
 }

@@ -1,8 +1,7 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
-import { ElementTreeProvider } from './context/ElementTreeContext.tsx'
 
 export type KitDebgOptions = {
   targetSelector: string;
@@ -26,7 +25,6 @@ export function kitDebg({targetSelector, background, extraTargetSelectors, exclu
   const root = createRoot(target!);
   root.render(
     <StrictMode>
-      <ElementTreeProvider>
         <App 
           targetSelector={targetSelector} 
           background={background} 
@@ -34,7 +32,6 @@ export function kitDebg({targetSelector, background, extraTargetSelectors, exclu
           excludeTargetSelector={excludeTargetSelector}
           onExit={onExit}
         />
-      </ElementTreeProvider>
     </StrictMode>,
   );
 

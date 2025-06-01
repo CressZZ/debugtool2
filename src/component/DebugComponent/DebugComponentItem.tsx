@@ -1,23 +1,24 @@
 import {  memo, type ReactNode } from "react";
-import {  type DebugElement } from "../../context/ElementTreeContext";
-import { isAnyAncestorSelected, isAnyDescendantSelected, useElementTree } from "../../hooks/useElementTree";
+import {  type DebugElement } from "../../types/elementTreeTypes";
 import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
+import { useElementTreeStore } from "../../store/useElementTreeStore";
 
-export const DebugComponentItem = memo(function DebugComponentItem({ rootElementId, element }: { rootElementId: string[], element: DebugElement }) {
-
+export const DebugComponentItem = memo(function DebugComponentItem({  element }: { element: DebugElement }) {
+  console.log("DebugComponentItem", element.id)
 
   return (
-    <DebugComponentBox element={element}  rootElementId={rootElementId}>
-      <DebugComponentChildren element={element}  rootElementId={rootElementId}/>
+    <DebugComponentBox element={element}  >
+      <DebugComponentChildren element={element}  />
     </DebugComponentBox>
   );
 });
 
 // 감싸고 있는놈
 
-export function DebugComponentBox({ element, children, rootElementId }: { element: DebugElement; children: ReactNode, rootElementId: string[] }) {
-  console.log(element.id)
+export function DebugComponentBox({ element, children }: { element: DebugElement; children: ReactNode }) {
 
+  const rootElementId = useElementTreeStore(state => state.rootElementId);
+  // console.log("DebugComponentBox", element.id)
   const defaultStyle = {
     outline: "2px solid red",
     backgroundColor: 'transparent',
@@ -129,18 +130,17 @@ export function DebugComponentBox({ element, children, rootElementId }: { elemen
 // 순환 돌리는 녀석
 export function DebugComponentChildren({
   element,
-  rootElementId,
 }: {
   element: DebugElement;
-  rootElementId: string[];
 }) {
-  const { elementMap } = useElementTree();
+  const elementMap = useElementTreeStore(state => state.elementMap);
+
   if (!element.children?.length) return null;
 
   return (
     <>
       {element.children.map((childId) => (
-        <DebugComponentItem key={childId} rootElementId={rootElementId} element={elementMap[childId]} />
+        <DebugComponentItem key={childId}  element={elementMap[childId]} />
       ))}
     </>
   );

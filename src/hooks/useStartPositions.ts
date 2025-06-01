@@ -1,6 +1,7 @@
 import { useRef } from "react";
-import type { DebugElement, ElementId, ElementMap } from "../context/ElementTreeContext";
+
 import type { movePosition } from "./useMouseEventDebugComponentItem";
+import type { DebugElement } from "../types/elementTreeTypes";
 
 export function useStartPositions() {
   const startPositions = useRef<Record<string, movePosition>>({});

@@ -1,14 +1,15 @@
-import { useContext, useRef, useState } from "react";
-import {
-  ElementTreeStateContext,
-  ElementTreeDispatchContext,
-} from "../../context/ElementTreeContext";
-import type { DebugElement } from "../../context/ElementTreeContext";
+import {  useRef, useState } from "react";
+
+import { useElementTreeStore } from "../../store/useElementTreeStore";
+import type { DebugElement } from "../../types/elementTreeTypes";
 
 
 export function DebugControlPanel({ onExit }: { onExit: () => void }) {
-  const state = useContext(ElementTreeStateContext);
-  const dispatch = useContext(ElementTreeDispatchContext);
+  const elementMap = useElementTreeStore(state => state.elementMap);
+  const rootElementId = useElementTreeStore(state => state.rootElementId);
+  const selectElement = useElementTreeStore(state => state.selectElement);
+  const selectOnlyElement = useElementTreeStore(state => state.selectOnlyElement);
+  const updateElementPositionType = useElementTreeStore(state => state.updateElementPositionType);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -49,10 +50,10 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
     //   });
     // }
     if(isMetaPressed || isCtrlPressed){
-      dispatch({ type: "SELECTED_ELEMENT", payload: { elementId: element.id } });
+      selectElement(element.id);
     }else{
       if(!element.selected){
-        dispatch({ type: "SELECT_ONLY_ELEMENT", payload: { elementId: element.id } });
+        selectOnlyElement(element.id);
       }else{
         //
       }
@@ -68,10 +69,7 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
   };
   
   const handleChangePositionType = (element: DebugElement, newType: 'margin' | 'transform') => {
-    dispatch({
-      type: 'UPDATE_ELEMENT_POSITION_TYPE',
-      payload: { elementId: element.id, positionType: newType },
-    });
+    updateElementPositionType(element.id, newType);
   };
   
   const renderElementTree = (element: DebugElement) => {
@@ -144,7 +142,7 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
   
         {/* children 재귀 렌더 */}
         {element.children.map((childId) => {
-          const child = state.elementMap[childId];
+          const child = elementMap[childId];
           if (child) {
             return renderElementTree(child);
           }
@@ -236,8 +234,8 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
             e.stopPropagation();
           }}
         >
-          {state.rootElementId.map((rootId) => {
-            const rootEl = state.elementMap[rootId];
+          {rootElementId.map((rootId) => {
+            const rootEl = elementMap[rootId];
             if (rootEl) {
               return renderElementTree(rootEl);
             }

@@ -1,18 +1,17 @@
 import { DebugComponentItem } from "./DebugComponentItem";
-import { useElementTree } from "../../hooks/useElementTree";
+import { useElementTreeStore } from "../../store/useElementTreeStore";
 
 
 export function DebugComponent() {
-  const ElementTree = useElementTree();
-  
-  const { rootElementId, elementMap } = ElementTree;
+  const rootElementId = useElementTreeStore(state => state.rootElementId);
+  const elementMap = useElementTreeStore(state => state.elementMap);
 
   return (
     <>
     {rootElementId.length > 0 && rootElementId.map(id => {
       const rootElement = elementMap[id];
 
-      return <DebugComponentItem key={id} rootElementId={rootElementId} element={rootElement} />
+      return <DebugComponentItem key={id} element={rootElement} />
     })}
     </>
   );
