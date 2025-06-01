@@ -21,11 +21,12 @@ export const DebugComponentItem = memo(function DebugComponentItem({  elementId 
 export const DebugComponentBox = memo(function DebugComponentBox({ element, children }: { element: DebugElement, children?: React.ReactNode }) {
   const rootElementId = useElementTreeStore(state => state.rootElementId);
 
-  console.log("DebugComponentBox", element.id)
+  // console.log("DebugComponentBox", element.id)
   const defaultStyle = {
     outline: "2px solid red",
     backgroundColor: 'transparent',
     // pointerEvents: 'none',
+    cursor: "move",
     opacity: '1',
     zIndex: '1',
   }
@@ -62,7 +63,8 @@ export const DebugComponentBox = memo(function DebugComponentBox({ element, chil
   }
 
   const rootStyle = {
-    pointerEvents: 'none',
+    // pointerEvents: 'none',
+    cursor:'default',
   }
 
   let currentStyle = { ...element.style, ...defaultStyle };
@@ -95,12 +97,12 @@ export const DebugComponentBox = memo(function DebugComponentBox({ element, chil
     display, marginTop, marginLeft,
     opacity, outline, backgroundColor, pointerEvents,
     transformTranslateX, transformTranslateY,
-    right, bottom
+    right, bottom,cursor
   } = currentStyle;
 
   // const element = useElementTreeStore(makeElementsByElementIdSelector(element.id));
   // console.log("selectedElementsByElementId", selectedElementsByElementId)
-  const { onMouseDown } = useMouseEventDebugComponentItem();
+  const { handleMouseDown: onMouseDown } = useMouseEventDebugComponentItem();
 
 
   // positionType 에 따라 다르게 처리
@@ -121,7 +123,7 @@ export const DebugComponentBox = memo(function DebugComponentBox({ element, chil
         backgroundColor,
         right, bottom,
         pointerEvents: pointerEvents === 'none' ? 'none' : 'auto',
-        cursor: "move",
+        cursor: cursor,
         transform: `translate(${transformTranslateX}, ${transformTranslateY})`,
       }}
       data-id={element.id}

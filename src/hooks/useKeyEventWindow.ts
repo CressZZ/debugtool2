@@ -1,14 +1,10 @@
 import { useEffect, useRef } from "react";
 import { shallow, useShallow } from 'zustand/shallow';
 
-
-
 import {
   getCurrentPositions,
   getPositionScss,
   setStartPositions,
-  useStartPositions,
-
 } from "./useStartPositions";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
 import { useElementTreeStore } from "../store/useElementTreeStore";
@@ -17,7 +13,7 @@ import type { DebugElement, ElementId } from "../types/elementTreeTypes";
 
 export function useKeyEventWindow(targetSelector: string) {
   const selectedElement = useElementTreeStore(useShallow(selectedElementsSelector));
-  const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
+  // const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
 
   const elementMap = useElementTreeStore(state => state.elementMap);
   const rootElementId = useElementTreeStore(state => state.rootElementId);
@@ -31,11 +27,16 @@ export function useKeyEventWindow(targetSelector: string) {
 
   const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
 
-  const selectedElementIdsRef = useRef(selectedElementIds);
 
-  useEffect(() => {
-    selectedElementIdsRef.current = selectedElementIds;
-  }, [selectedElementIds]);
+  // let startPositions: Record<string, movePosition> = {};
+  const startPositionsRef = useRef<Record<string, movePosition>>({});
+  const isKeydownArrowing = useRef(false);
+  const selectedElementIdsRef = useRef<string[]>([]);
+
+  // 누적 이동값 저장용 ref
+  const moveDeltaRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
+
+
 
   useEffect(() => {
     elementMapRef.current = elementMap;
@@ -44,14 +45,12 @@ export function useKeyEventWindow(targetSelector: string) {
 
   // 최신 selectedElement 유지
   const selectedElementRef = useRef(selectedElement);
-
   useEffect(() => {
     selectedElementRef.current = selectedElement;
   }, [selectedElement]);
 
+  // 👉 일반 키 핸들링 (단축키들)
   const handleKeydown = (e: KeyboardEvent) => {
-
-    // console.log("handleKeydown", e);
     if ((e.metaKey || e.ctrlKey) && e.key === "s") {
       e.preventDefault();
       e.stopPropagation();
@@ -62,35 +61,9 @@ export function useKeyEventWindow(targetSelector: string) {
         targetSelector
       );
 
-      // copy to clipboard
       navigator.clipboard.writeText(positionScss);
-
       console.log(positionScss);
     }
-
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-      e.preventDefault(); // 기본 스크롤 방지
-
-      const elementMap = useElementTreeStore.getState().elementMap;
-      const selectedElementIds = Object.values(elementMap).filter(el => el.selected).map(el => el.id);
-    
-
-      const isMeta = e.metaKey || e.ctrlKey;
-    
-      const startPositions = setStartPositions();
-
-      handleArrowKey({
-        dx: e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0,
-        dy: e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0,
-        isMeta,
-        selectedElementIds: selectedElementIds,
-        updateMultipleElementsStyle,
-        startPositions: startPositions,
-      });
-    
-      return;
-    }
-    
 
     if (e.key === "Escape") {
       selectedElementRef.current.forEach((element) => {
@@ -132,78 +105,100 @@ export function useKeyEventWindow(targetSelector: string) {
     }
   };
 
-  // 키 바인딩은 빈 deps (ref로 안전하게 최신 selectedElement 사용)
+  // 👉 방향키 keydown → transform 적용
+  const handleKeydownArrow = (e: KeyboardEvent) => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+
+      if(!isKeydownArrowing.current){
+        isKeydownArrowing.current = true;
+        startPositionsRef.current = setStartPositions();
+
+        selectedElementIdsRef.current = selectedElementIdsSelector(useElementTreeStore.getState());
+      }
+
+      e.preventDefault();
+
+
+      const isMeta = e.metaKey || e.ctrlKey;
+
+      const deltaX = (e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0) * (isMeta ? 100 : 1);
+      const deltaY = (e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0) * (isMeta ? 100 : 1);
+
+      // 누적 이동값 업데이트
+      moveDeltaRef.current.dx += deltaX;
+      moveDeltaRef.current.dy += deltaY;
+
+
+      // DOM transform 임시 적용
+      handleArrowKeyPreview({
+        dx: moveDeltaRef.current.dx,
+        dy: moveDeltaRef.current.dy,
+        selectedElementIds: selectedElementIdsRef.current,
+      });
+    }
+  };
+
+  // 👉 방향키 keyup → store 업데이트
+  const handleKeyupArrow = (e: KeyboardEvent) => {
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      e.preventDefault();
+
+
+      const positionStyles = getCurrentPositions(
+        selectedElementIdsRef.current,
+        startPositionsRef.current,
+        moveDeltaRef.current.dx,
+        moveDeltaRef.current.dy
+      );
+    
+      updateMultipleElementsStyle(positionStyles);
+
+      // 누적값 초기화
+      moveDeltaRef.current = { dx: 0, dy: 0 };
+
+      // transform 초기화
+      handleArrowKeyPreview({
+        dx: 0,
+        dy: 0,
+        selectedElementIds: selectedElementIdsRef.current,
+      });
+
+      isKeydownArrowing.current = false;
+    }
+  };
+
+  // 이벤트 등록
   useEffect(() => {
     window.addEventListener("keydown", handleKeydown);
+    window.addEventListener("keydown", handleKeydownArrow);
+    window.addEventListener("keyup", handleKeyupArrow);
+
     return () => {
       window.removeEventListener("keydown", handleKeydown);
+      window.removeEventListener("keydown", handleKeydownArrow);
+      window.removeEventListener("keyup", handleKeyupArrow);
     };
   }, []);
 }
 
-function onHandleArrowUpDown(
-  dy: number,
-  selectedElementIds: string[],
-  updateMultipleElementsStyle: (updates: Record<ElementId, Partial<DebugElement['style']>>) => void,
-  startPositions: Record<string, movePosition>
-) {
-  const positionStyles = getCurrentPositions(
-    selectedElementIds,
-    startPositions,
-    0,
-    dy
-  );
-
-  updateMultipleElementsStyle(positionStyles);
-}
-
-function onHandleArrowLeftRight(
-  dx: number,
-  selectedElementIds: string[],
-  updateMultipleElementsStyle: (updates: Record<ElementId, Partial<DebugElement['style']>>) => void,
-  startPositions: Record<string, movePosition>
-) {
-  const positionStyles = getCurrentPositions(
-    selectedElementIds,
-    startPositions,
-    dx,
-    0
-  );
-
-  updateMultipleElementsStyle(positionStyles)
-}
 
 
-function handleArrowKey({
-  dx = 0,
-  dy = 0,
-  isMeta = false,
+// DOM에 임시 transform 적용용
+function handleArrowKeyPreview({
+  dx,
+  dy,
   selectedElementIds,
-  updateMultipleElementsStyle,
-  startPositions,
 }: {
-  dx?: number;
-  dy?: number;
-  isMeta?: boolean;
+  dx: number;
+  dy: number;
   selectedElementIds: string[];
-  updateMultipleElementsStyle: (updates: Record<ElementId, Partial<DebugElement['style']>>) => void;
-  startPositions: Record<string, movePosition>;
 }) {
-  // Meta키 누른 경우는 크게 이동, 아니면 기본 이동
-  const deltaX = dx * (isMeta ? 100 : 1);
-  const deltaY = dy * (isMeta ? 100 : 1);
 
-  // 시작 위치 세팅
-  console.log("startPositions", startPositions)
-  console.log("selectedElementIds", selectedElementIds)
-  // 현재 위치 계산
-  const positionStyles = getCurrentPositions(
-    selectedElementIds,
-    startPositions,
-    deltaX,
-    deltaY
-  );
+  selectedElementIds.forEach((id) => {
+    const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement | null;
 
-  // 업데이트
-  updateMultipleElementsStyle(positionStyles);
+    if (el) {
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+  });
 }
