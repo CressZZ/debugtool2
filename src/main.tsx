@@ -19,7 +19,6 @@ export function kitDebug({
   excludeTargetSelector,
 }: KitDebgOptions) {
 
-
   // kitDebgRoot 없으면 자동 생성
   let appTarget = document.querySelector("#kitDebgRoot") as HTMLElement | null;
   if (!appTarget) {
@@ -38,9 +37,6 @@ export function kitDebug({
     appRoot.unmount();
   }
 
-  // @ts-expect-error window.kitDebug 추가
-  window.kitDebug.unMount = unMount;
-
   // Starter 렌더 (버튼만 body 포탈)
   appRoot.render(
     <StrictMode>
@@ -58,5 +54,6 @@ export function kitDebug({
   }
 }
 
-// @ts-expect-error window.kitDebug 추가
-window.kitDebug = kitDebug;
+export default kitDebug;
+
+

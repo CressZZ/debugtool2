@@ -3,6 +3,20 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist/kitPositionDebugTool.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/kitPositionDebugTool.js",
+      "require": "./dist/kitPositionDebugTool.umd.cjs"
+    },
+    "./middleware": {
+      "import": "./dist/middleware/middleware.js",
+      "require": "./dist/middleware/middleware.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -35,6 +49,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
+    "vite-plugin-static-copy": "^3.0.0",
     "zustand": "^5.0.5"
   }
 }
