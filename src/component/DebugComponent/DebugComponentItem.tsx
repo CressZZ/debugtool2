@@ -1,9 +1,9 @@
-import {  memo } from "react";
-import {  type DebugElement } from "../../types/elementTreeTypes";
-import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
-import { useElementTreeStore } from "../../store/useElementTreeStore";
+import { memo } from "react";
 import { useShallow } from "zustand/shallow";
+import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
 import { makeElementsByElementIdSelector } from "../../store/elementTreeSelectors";
+import { useElementTreeStore } from "../../store/useElementTreeStore";
+import { type DebugElement } from "../../types/elementTreeTypes";
 
 export const DebugComponentItem = memo(function DebugComponentItem({  elementId }: { elementId: string }) {
 
@@ -23,7 +23,7 @@ export const DebugComponentBox = memo(function DebugComponentBox({ element, chil
 
   // console.log("DebugComponentBox", element.id)
   const defaultStyle = {
-    outline: "2px solid red",
+    outline: "2px solid rgba(255, 0, 0, 0.7)",
     backgroundColor: 'transparent',
     // pointerEvents: 'none',
     cursor: "move",

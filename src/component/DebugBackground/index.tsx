@@ -19,7 +19,7 @@ export function DebugBackground({
         height: "100%",
         backgroundImage: `url(${backgroundImage})`,
         backgroundPosition: "center",
-        backgroundSize: "cover",
+        backgroundSize: "1920px 1080px",
         backgroundRepeat: "no-repeat",
         opacity: opacity,
         filter: isInverted ? "invert(1)" : "none",

@@ -1,5 +1,5 @@
 import type { StoreApi } from 'zustand';
-import { saveCurrentToFuture, saveToHistory } from './elementTreeUtils';
+import { saveCurrentToFuture } from './elementTreeUtils';
 import type { ElementTreeState, StoreType } from './useElementTreeStore';
 
 export type ElementTreeActionsHistory = {
@@ -11,7 +11,7 @@ export function createElementTreeActionsHistory(set: StoreApi<StoreType>["setSta
   return {
     undo: () => {
       set((state: ElementTreeState) => {
-        if (state.history.past.length > 1) {
+        if (state.history.past.length > 0) {
           const prev = state.history.past.pop()!;
           saveCurrentToFuture(state);
           state.elementMap = prev;
@@ -24,7 +24,7 @@ export function createElementTreeActionsHistory(set: StoreApi<StoreType>["setSta
       set((state: ElementTreeState) => {
         if (state.history.future.length > 0) {
           const next = state.history.future.pop()!;
-          saveToHistory(state);
+          state.history.past.push(JSON.parse(JSON.stringify(state.elementMap)));
           state.elementMap = next;
         }
         return state;

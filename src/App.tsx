@@ -1,103 +1,39 @@
-import { useEffect, useRef } from "react";
-import { parseDomToTree } from "./utils/parseDomToTree";
-import { DebugComponent } from "./component/DebugComponent";
-
-
-import { useKeyEventWindow } from "./hooks/useKeyEventWindow";
-import { DebugBackground } from "./component/DebugBackground";
-import { DebugControlPanel } from "./component/DebugControlPanel";
-import { useDebugerWrapperStyle } from "./hooks/useDebugerWrapperStyle";
-import throttle from "lodash.throttle";
+import { useState } from "react";
+import Debug from "./component/Debug";
+import { Starter } from "./component/Starter";
+import type { KitDebgOptions } from "./main";
 import { useElementTreeStore } from "./store/useElementTreeStore";
 
-type AppProps = {
-  targetSelector: string;
-  background: string;
-  extraTargetSelectors?: string[];
-  excludeTargetSelector?: string[];
-  onExit: () => void;
-};
-
-function App({
+export function App({
   targetSelector,
   background,
-
-  excludeTargetSelector = [],
-  onExit,
-}: AppProps) {
-  const elementMap  = useElementTreeStore(state => state.elementMap);
-  const setElementMap = useElementTreeStore(state => state.setElementMap);
-  const resetElementMap = useElementTreeStore(state => state.resetElementMap);
+  extraTargetSelectors,
+  excludeTargetSelector,
+}:KitDebgOptions) {
+  const [isRunning, setIsRunning] = useState(false);
+  const resetElementTree = useElementTreeStore((state) => state.reset);
   
-  const isMounted = useRef(false);
-
-  const setElementMapInit = () => {
-    const ParsedElementTree = parseDomToTree(
-      document.querySelector(targetSelector)!,
-      excludeTargetSelector
-    );
-
-    setElementMap(
-      ParsedElementTree.elementMap,
-      ParsedElementTree.rootElementId,
-    );
+  const onExit = () => {
+    resetElementTree();
+    setIsRunning(false);
   }
 
-  useEffect(() => {
-
-  }, [elementMap]);
-
-  useEffect(() => {
-    if (isMounted.current) return;
-    isMounted.current = true;
-
-    setElementMapInit();
-  }, []);
-
-  useEffect(() => {
-    const handleResize = throttle(() => {
-      resetElementMap();
-
-      setElementMapInit();
-    }, 200); // 200ms throttle (원하면 숫자 조절 가능)
-  
-    window.addEventListener('resize', handleResize);
-  
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      handleResize.cancel?.(); // lodash.throttle 은 cancel 지원
-    };
-  }, []);
-
-  // 키바인딩
-  useKeyEventWindow(targetSelector);
-
-  useDebugerWrapperStyle();
-
-  // 휠이벤트 막기(필요한가? kit 페이지 휠만 막아도 되지 않나)
-  useEffect(() => {
-    const target = document.querySelector("#kitDebgRoot") as HTMLElement;
-    if (target) {
-      const handleWheel = (e: WheelEvent) => {
-        e.stopPropagation();
-
-      };
-
-      target.addEventListener("wheel", handleWheel, { passive: false });
-
-      return () => {
-        target.removeEventListener("wheel", handleWheel);
-      };
-    }
-  }, []);
-
-  return (
-    <>
-      <DebugBackground backgroundImage={background} />
-      <DebugComponent />
-      <DebugControlPanel onExit={onExit} />
-    </>
-  );
+return (
+  <>
+  {isRunning ? (
+    <Debug
+      targetSelector={targetSelector}
+      background={background}
+      extraTargetSelectors={extraTargetSelectors}
+      excludeTargetSelector={excludeTargetSelector}
+      onExit={onExit}
+    />
+  ) : (
+    <Starter onClick={() => {
+      console.log("Starter 클릭");
+      setIsRunning(true);
+    }}/>
+  )}
+  </> 
+  )
 }
-
-export default App;

@@ -1,6 +1,6 @@
 import type { StoreApi } from 'zustand';
 import type { DebugElement, ElementId } from '../types/elementTreeTypes';
-import { saveToHistory, updateAncestorDescendantFlags } from './elementTreeUtils';
+import { updateAncestorDescendantFlags } from './elementTreeUtils';
 import type { StoreType } from './useElementTreeStore';
 
 
@@ -21,7 +21,7 @@ export function createElementTreeActionsSelect(  set: StoreApi<StoreType>["setSt
       const state = get();
       if (state.rootElementId.includes(elementId)) return;
       set(state => {
-        saveToHistory(state)
+        // saveToHistory(state)
 
         const element = state.elementMap[elementId];
         element.selected = !element.selected;
@@ -34,7 +34,7 @@ export function createElementTreeActionsSelect(  set: StoreApi<StoreType>["setSt
       const state = get();
       if (state.rootElementId.includes(elementId)) return;
       set(state => {
-        saveToHistory(state)
+        // saveToHistory(state)
 
         Object.values(state.elementMap).forEach(el => {
           el.selected = false;
@@ -49,7 +49,7 @@ export function createElementTreeActionsSelect(  set: StoreApi<StoreType>["setSt
 
     unselectAllElement: () => {
       set(state => {
-        saveToHistory(state)
+        // saveToHistory(state)
 
         Object.values(state.elementMap).forEach(el => {
           el.selected = false;
@@ -65,7 +65,7 @@ export function createElementTreeActionsSelect(  set: StoreApi<StoreType>["setSt
       if (state.rootElementId.includes(elementId)) return;
       
       set(state => {
-        saveToHistory(state);
+        // saveToHistory(state);
     
         const element = state.elementMap[elementId];
         element.selected = true;
@@ -76,7 +76,7 @@ export function createElementTreeActionsSelect(  set: StoreApi<StoreType>["setSt
 
     unselectElement: (elementId: ElementId) => {
       set(state => {
-        saveToHistory(state);
+        // saveToHistory(state);
     
         const element = state.elementMap[elementId];
         element.selected = false;

@@ -1,47 +1,6 @@
-import { useState } from 'react';
-import { createPortal } from 'react-dom';
-import App from '../../App';
+import { createPortal } from "react-dom";
 
-export type StarterProps = {
-  targetSelector: string;
-  background: string;
-  extraTargetSelectors?: string[];
-  excludeTargetSelector?: string[];
-  onExit: () => void;
-  appRoot: ReturnType<typeof import('react-dom/client')['createRoot']>;
-};
-
-export default function Starter({
-  targetSelector,
-  background,
-  extraTargetSelectors,
-  excludeTargetSelector,
-  onExit,
-  appRoot,
-}: StarterProps) {
-  const [started, setStarted] = useState(false);
-
-  const handleStart = () => {
-    console.log('디버그 시작!');
-    setStarted(true);
-
-    // App 마운트
-    appRoot.render(
-      <App
-        targetSelector={targetSelector}
-        background={background}
-        extraTargetSelectors={extraTargetSelectors}
-        excludeTargetSelector={excludeTargetSelector}
-        onExit={onExit}
-      />
-    );
-  };
-
-  if (started) {
-    // 버튼 제거됨
-    return null;
-  }
-
+export function Starter({ onClick }: { onClick: () => void }) {
   return createPortal(
     <button
     style={{
@@ -58,7 +17,7 @@ export default function Starter({
       transition: 'background-color 0.2s ease',
     }}
       className=""
-      onClick={handleStart}
+      onClick={onClick}
       
     >
       디버그 시작

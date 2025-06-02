@@ -229,7 +229,7 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
         </div>
       </div>
 
-      <div style={{ marginBottom: "8px", display: "flex", gap: "8px", flexDirection: "column" }}>
+      <div style={{ marginBottom: "8px", display: "flex", gap: "8px", flexDirection: "column", padding: "5px 20px" }}>
         <div> 
             <label style={{ display: "block", marginBottom: "4px" }}>
               Background Opacity: {bgoOpacity.toFixed(2)}

@@ -26,7 +26,7 @@ export function createElementTreeActionsEtc(  set: StoreApi<StoreType>["setState
 
     resetElementMap: () => {
       set((state: ElementTreeState) => {
-        saveToHistory(state)
+        // saveToHistory(state)
 
         state.elementMap = {};
         state.rootElementId = [];
@@ -36,7 +36,7 @@ export function createElementTreeActionsEtc(  set: StoreApi<StoreType>["setState
 
     setElementMap: (elementMap: ElementMap, rootElementId: ElementId[]) => {
       set((state: ElementTreeState) => {
-        saveToHistory(state)
+        // saveToHistory(state)
 
         state.elementMap = { ...state.elementMap, ...elementMap };
         state.rootElementId = [...state.rootElementId, ...rootElementId];
