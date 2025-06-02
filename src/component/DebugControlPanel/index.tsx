@@ -2,6 +2,7 @@ import {  useRef, useState } from "react";
 
 import { useElementTreeStore } from "../../store/useElementTreeStore";
 import type { DebugElement } from "../../types/elementTreeTypes";
+import { useDebugBackgroundStore } from "../../store/useDebugBackgourndStore";
 
 
 export function DebugControlPanel({ onExit }: { onExit: () => void }) {
@@ -16,6 +17,11 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
   const [position, setPosition] = useState({ x: 100, y: 100 });
   const isDragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
+
+  const bgoOpacity = useDebugBackgroundStore(state => state.opacity);
+  const setBgOpacity = useDebugBackgroundStore(state => state.setOpacity);
+  const setBgIsInverted = useDebugBackgroundStore(state => state.setIsInverted);
+  const bgIsInverted = useDebugBackgroundStore(state => state.isInverted);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDragging.current = true;
@@ -221,6 +227,33 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
           >
             ✕
           </button>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "8px", display: "flex", gap: "8px", flexDirection: "column" }}>
+        <div> 
+            <label style={{ display: "block", marginBottom: "4px" }}>
+              Background Opacity: {bgoOpacity.toFixed(2)}
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={bgoOpacity}
+              onChange={(e) => setBgOpacity(parseFloat(e.target.value))}
+              style={{ width: "100%" }}
+            />
+        </div>
+        <div>
+          <label style={{ display: "block", marginBottom: "4px" }}>
+            Background Inverted: {bgIsInverted ? "Yes" : "No"}
+          </label>
+          <input
+            type="checkbox"
+            checked={bgIsInverted}
+            onChange={(e) => setBgIsInverted(e.target.checked)}
+          />
         </div>
       </div>
 

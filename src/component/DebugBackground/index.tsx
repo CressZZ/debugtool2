@@ -1,8 +1,14 @@
+import { useDebugBackgroundStore } from "../../store/useDebugBackgourndStore";
+
 export function DebugBackground({
   backgroundImage,
 }: {
   backgroundImage: string;
 }) {
+
+  const opacity = useDebugBackgroundStore(state => state.opacity);
+  const isInverted = useDebugBackgroundStore(state => state.isInverted);
+
   return (
     <div
       style={{
@@ -15,7 +21,8 @@ export function DebugBackground({
         backgroundPosition: "center",
         backgroundSize: "cover",
         backgroundRepeat: "no-repeat",
-        opacity: 0.5,
+        opacity: opacity,
+        filter: isInverted ? "invert(1)" : "none",
       }}
     ></div>
   );
