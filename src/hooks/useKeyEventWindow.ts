@@ -10,7 +10,7 @@ import {
   setStartPositions,
 } from "./useStartPositions";
 
-export function useKeyEventWindow(targetSelector: string) {
+export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targetSelector: string, positionStyleFilePath?: string}) {
   const selectedElement = useElementTreeStore(useShallow(selectedElementsSelector));
   const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
 
@@ -54,7 +54,7 @@ export function useKeyEventWindow(targetSelector: string) {
   }, [selectedElement]);
 
   // 👉 일반 키 핸들링 (단축키들)
-  const handleKeydown = (e: KeyboardEvent) => {
+  const handleKeydown = async (e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "s") {
       e.preventDefault();
       e.stopPropagation();
@@ -67,6 +67,31 @@ export function useKeyEventWindow(targetSelector: string) {
 
       navigator.clipboard.writeText(positionScss);
       console.log(positionScss);
+
+      if(positionStyleFilePath){
+
+        const payload = [positionStyleFilePath, positionScss];
+
+        try {
+          const res = await fetch('/api/write', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+  
+          if (!res.ok) {
+            const errText = await res.text();
+            console.error('❌ 저장 실패:', errText);
+          } else {
+            const data = await res.json();
+            console.log('✅ 저장 성공:', data);
+          }
+        } catch (err) {
+          console.error('❌ 네트워크 오류:', err);
+        }
+      }
     }
 
     if (e.key === "Escape") {

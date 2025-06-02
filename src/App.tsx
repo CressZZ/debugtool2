@@ -9,6 +9,7 @@ export function App({
   background,
   extraTargetSelectors,
   excludeTargetSelector,
+  positionStyleFilePath,
 }:KitDebgOptions) {
   const [isRunning, setIsRunning] = useState(false);
   const resetElementTree = useElementTreeStore((state) => state.reset);
@@ -27,6 +28,7 @@ return (
       extraTargetSelectors={extraTargetSelectors}
       excludeTargetSelector={excludeTargetSelector}
       onExit={onExit}
+      positionStyleFilePath={positionStyleFilePath}
     />
   ) : (
     <Starter onClick={() => {

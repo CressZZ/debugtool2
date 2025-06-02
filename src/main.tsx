@@ -9,6 +9,7 @@ export type KitDebgOptions = {
   background: string;
   extraTargetSelectors?: string[];
   excludeTargetSelector?: string[];
+  positionStyleFilePath?: string;
 };
 
 
@@ -17,6 +18,7 @@ export function kitDebug({
   background,
   extraTargetSelectors,
   excludeTargetSelector,
+  positionStyleFilePath,
 }: KitDebgOptions) {
 
   // kitDebgRoot 없으면 자동 생성
@@ -45,6 +47,7 @@ export function kitDebug({
         background={background}
         extraTargetSelectors={extraTargetSelectors}
         excludeTargetSelector={excludeTargetSelector}
+        positionStyleFilePath={positionStyleFilePath}
       />
     </StrictMode>
   );

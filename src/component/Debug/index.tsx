@@ -16,14 +16,15 @@ type AppProps = {
   extraTargetSelectors?: string[];
   excludeTargetSelector?: string[];
   onExit: () => void;
+  positionStyleFilePath?: string;
 };
 
 function Debug({
   targetSelector,
   background,
-
   excludeTargetSelector = [],
   onExit,
+  positionStyleFilePath,
 }: AppProps) {
   const elementMap  = useElementTreeStore(state => state.elementMap);
   const setElementMap = useElementTreeStore(state => state.setElementMap);
@@ -73,7 +74,7 @@ function Debug({
   }, []);
 
   // 키바인딩
-  useKeyEventWindow(targetSelector);
+  useKeyEventWindow({targetSelector, positionStyleFilePath});
 
   useDebugerWrapperStyle();
 
