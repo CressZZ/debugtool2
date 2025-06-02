@@ -21,6 +21,7 @@ export default defineConfig({
   },
 
   build: {
+    sourcemap: true,
     cssCodeSplit: false, // ⭐️ 이거 추가!
     lib: {
       entry: "./src/main.tsx",

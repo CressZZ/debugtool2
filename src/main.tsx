@@ -31,10 +31,11 @@ export function kitDebug({
   }
 
   const appRoot = createRoot(appTarget);
-
   const resetElementTree = useElementTreeStore.getState().reset;
 
+  console.log("mount kitDebug");
   const unMount = () => {
+    console.log("unMount kitDebug");
     resetElementTree();
     appRoot.unmount();
   }
