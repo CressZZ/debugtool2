@@ -1,4 +1,3 @@
-import type { DebugElement } from "../types/elementTreeTypes";
 
 
 // export const isAnyAncestorSelected = (element: DebugElement, elementMap: Record<string, DebugElement>): boolean => {

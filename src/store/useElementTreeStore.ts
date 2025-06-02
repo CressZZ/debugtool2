@@ -1,14 +1,11 @@
 import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
-import type { ElementId, DebugElement, ElementMap } from '../types/elementTreeTypes';
 import { devtools } from 'zustand/middleware';
-import { createSelector } from 'reselect';
-import { shallow } from 'zustand/shallow';
-import { saveCurrentToFuture, saveToHistory, updateAncestorDescendantFlags } from './elementTreeUtils';
+import { immer } from 'zustand/middleware/immer';
+import type { ElementId, ElementMap } from '../types/elementTreeTypes';
 import { createElementTreeActionsEtc, type ElementTreeActionsEtc } from './elementTreeActionsEtc';
-import { createElementTreeActionsStyle, type ElementTreeActionsStyle } from './elementTreeActionsStyle';
-import { createElementTreeActionsSelect, type ElementTreeActionsSelect } from './elementTreeActionsSelect';
 import { createElementTreeActionsHistory, type ElementTreeActionsHistory } from './elementTreeActionsHistory';
+import { createElementTreeActionsSelect, type ElementTreeActionsSelect } from './elementTreeActionsSelect';
+import { createElementTreeActionsStyle, type ElementTreeActionsStyle } from './elementTreeActionsStyle';
 
 // --- Store ---
 export type History = {
@@ -20,9 +17,13 @@ export type ElementTreeState = {
   elementMap: ElementMap;
   rootElementId: ElementId[];
   history: History;
-} & ElementTreeActionsSelect & ElementTreeActionsStyle & ElementTreeActionsHistory & ElementTreeActionsEtc;
+};
 
-export const useElementTreeStore = create<ElementTreeState>()(
+export type ElementTreeActions = ElementTreeActionsSelect & ElementTreeActionsStyle & ElementTreeActionsHistory & ElementTreeActionsEtc;
+
+export type StoreType = ElementTreeState & ElementTreeActions;
+
+export const useElementTreeStore = create<StoreType>()(
   devtools(immer((set, get) => ({
     elementMap: {},
     rootElementId: [],
@@ -33,7 +34,7 @@ export const useElementTreeStore = create<ElementTreeState>()(
 
     ...createElementTreeActionsEtc(set, get),
     ...createElementTreeActionsSelect(set, get),
-    ...createElementTreeActionsStyle(set, get),
+    ...createElementTreeActionsStyle(set),
     ...createElementTreeActionsHistory(set),
 
   })))

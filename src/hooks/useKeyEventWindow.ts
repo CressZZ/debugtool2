@@ -1,15 +1,14 @@
 import { useEffect, useRef } from "react";
-import { shallow, useShallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/shallow';
 
+import { selectedElementIdsSelector, selectedElementsSelector } from "../store/elementTreeSelectors";
+import { useElementTreeStore } from "../store/useElementTreeStore";
+import type { movePosition } from "./useMouseEventDebugComponentItem";
 import {
   getCurrentPositions,
   getPositionScss,
   setStartPositions,
 } from "./useStartPositions";
-import type { movePosition } from "./useMouseEventDebugComponentItem";
-import { useElementTreeStore } from "../store/useElementTreeStore";
-import { selectedElementIdsSelector, selectedElementsSelector } from "../store/elementTreeSelectors";
-import type { DebugElement, ElementId } from "../types/elementTreeTypes";
 
 export function useKeyEventWindow(targetSelector: string) {
   const selectedElement = useElementTreeStore(useShallow(selectedElementsSelector));

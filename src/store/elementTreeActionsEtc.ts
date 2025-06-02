@@ -1,7 +1,7 @@
 import type { StoreApi } from 'zustand';
-import type { ElementTreeState } from './useElementTreeStore';
-import { saveToHistory, saveCurrentToFuture, updateAncestorDescendantFlags } from './elementTreeUtils';
 import type { ElementId, ElementMap } from '../types/elementTreeTypes';
+import { saveToHistory } from './elementTreeUtils';
+import type { ElementTreeState, StoreType } from './useElementTreeStore';
 
 export type ElementTreeActionsEtc = {
   resetElementMap: () => void;
@@ -11,7 +11,7 @@ export type ElementTreeActionsEtc = {
   reset: () => void;
 }
 
-export function createElementTreeActionsEtc(  set: StoreApi<ElementTreeState>["setState"], get: StoreApi<ElementTreeState>["getState"]) {
+export function createElementTreeActionsEtc(  set: StoreApi<StoreType>["setState"], get: StoreApi<StoreType>["getState"]) {
   return {
     reset: () => {
       set({

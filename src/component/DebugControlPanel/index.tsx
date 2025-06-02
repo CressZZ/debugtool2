@@ -1,8 +1,8 @@
-import {  useRef, useState } from "react";
+import { useRef, useState } from "react";
 
+import { useDebugBackgroundStore } from "../../store/useDebugBackgourndStore";
 import { useElementTreeStore } from "../../store/useElementTreeStore";
 import type { DebugElement } from "../../types/elementTreeTypes";
-import { useDebugBackgroundStore } from "../../store/useDebugBackgourndStore";
 
 
 export function DebugControlPanel({ onExit }: { onExit: () => void }) {
@@ -10,7 +10,6 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
   const rootElementId = useElementTreeStore(state => state.rootElementId);
   const selectElement = useElementTreeStore(state => state.selectElement);
   const selectOnlyElement = useElementTreeStore(state => state.selectOnlyElement);
-  const updateElementPositionType = useElementTreeStore(state => state.updateElementPositionType);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -74,9 +73,9 @@ export function DebugControlPanel({ onExit }: { onExit: () => void }) {
     // });
   };
   
-  const handleChangePositionType = (element: DebugElement, newType: 'margin' | 'transform') => {
-    updateElementPositionType(element.id, newType);
-  };
+  // const handleChangePositionType = (element: DebugElement, newType: 'margin' | 'transform') => {
+  //   updateElementPositionType(element.id, newType);
+  // };
   
   const renderElementTree = (element: DebugElement) => {
     return (

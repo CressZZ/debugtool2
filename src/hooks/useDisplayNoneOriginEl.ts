@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { useElementTree } from "./useElementTree";
 import type { KitDebgOptions } from "../main";
+import { useElementTreeStore } from "../store/useElementTreeStore";
 
 export function useDisplayNoneOriginEl(targetSelector: KitDebgOptions['targetSelector']) {
-  const {  rootElementId } = useElementTree();
+  const rootElementId = useElementTreeStore(state => state.rootElementId);
 
   useEffect(() => {
     if (rootElementId) {

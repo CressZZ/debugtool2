@@ -1,7 +1,7 @@
 import type { StoreApi } from 'zustand';
-import type { ElementTreeState } from './useElementTreeStore';
-import { saveToHistory, saveCurrentToFuture, updateAncestorDescendantFlags } from './elementTreeUtils';
-import type { ElementId, ElementMap } from '../types/elementTreeTypes';
+import type { ElementId } from '../types/elementTreeTypes';
+import { saveToHistory } from './elementTreeUtils';
+import type { StoreType } from './useElementTreeStore';
 
 export type ElementTreeActionsStyle = {
   updateMultipleElementsStyle: (updates: Record<string, Partial<CSSStyleDeclaration>>) => void;
@@ -10,7 +10,9 @@ export type ElementTreeActionsStyle = {
   updateElementStyle: (elementId: ElementId, style: Partial<CSSStyleDeclaration>) => void;
 }
 
-export function createElementTreeActionsStyle(  set: StoreApi<ElementTreeState>["setState"], get: StoreApi<ElementTreeState>["getState"]) {
+export function createElementTreeActionsStyle(
+  set: StoreApi<StoreType>["setState"]
+) {
   return {
 
 

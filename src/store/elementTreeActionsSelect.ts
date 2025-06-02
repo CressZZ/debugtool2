@@ -1,7 +1,7 @@
 import type { StoreApi } from 'zustand';
-import type { ElementTreeState } from './useElementTreeStore';
-import { saveToHistory, saveCurrentToFuture, updateAncestorDescendantFlags } from './elementTreeUtils';
-import type { DebugElement, ElementId, ElementMap } from '../types/elementTreeTypes';
+import type { DebugElement, ElementId } from '../types/elementTreeTypes';
+import { saveToHistory, updateAncestorDescendantFlags } from './elementTreeUtils';
+import type { StoreType } from './useElementTreeStore';
 
 
 export type ElementTreeActionsSelect = {
@@ -13,7 +13,7 @@ export type ElementTreeActionsSelect = {
   selectedElement: () => DebugElement[];
 }
 
-export function createElementTreeActionsSelect(  set: StoreApi<ElementTreeState>["setState"], get: StoreApi<ElementTreeState>["getState"]) {
+export function createElementTreeActionsSelect(  set: StoreApi<StoreType>["setState"], get: StoreApi<StoreType>["getState"]) {
   return {
   
 

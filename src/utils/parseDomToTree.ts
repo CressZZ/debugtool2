@@ -1,5 +1,7 @@
 import { v4 as uidv4 } from 'uuid';
-import type { DebugElement, ElementId, ElementTreeState } from "../context/ElementTreeContext";
+import type { ElementTreeState } from "../store/useElementTreeStore";
+import type { DebugElement, ElementId } from "../types/elementTreeTypes";
+
 
 let count = 0;
 
@@ -34,6 +36,8 @@ function createElement({el, parentId, isRoot}: {el: HTMLElement, parentId?: stri
     className: Array.from(el.classList),
     parentId,
     selected: false,
+    isAnyAncestorSelected: false,
+    isAnyDescendantSelected: false,
     // positionType: 'transform', // 사용안함
     positionType: 'margin',
     style: {
