@@ -3,12 +3,13 @@ import { useShallow } from 'zustand/shallow';
 
 import { selectedElementIdsSelector, selectedElementsSelector } from "../store/elementTreeSelectors";
 import { useElementTreeStore } from "../store/useElementTreeStore";
-import type { movePosition } from "./useMouseEventDebugComponentItem";
+
 import {
-  getCurrentPositions,
+
   getPositionScss,
-  setStartPositions,
+
 } from "./useStartPositions";
+import { useMoveElement } from "./useMoveElement";
 
 export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targetSelector: string, positionStyleFilePath?: string}) {
   const selectedElement = useElementTreeStore(useShallow(selectedElementsSelector));
@@ -24,19 +25,11 @@ export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targ
   const undo = useElementTreeStore(state => state.undo);
   const redo = useElementTreeStore(state => state.redo);
 
-  const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
-
-  const updateElementStyle = useElementTreeStore(state => state.updateElementStyle);
-
-  // let startPositions: Record<string, movePosition> = {};
-  const startPositionsRef = useRef<Record<string, movePosition>>({});
-  const isMoving = useRef(false);
   const selectedElementIdsRef = useRef<string[]>([]);
 
-  // 누적 이동값 저장용 ref
-  const currentDx = useRef(0);
-  const currentDy = useRef(0);
 
+  const { moveStartKeyboard: moveUpdateKeyboard, moveEnd } = useMoveElement();
+  
   // Keep selectedElementIds in ref
   useEffect(() => {
     selectedElementIdsRef.current = selectedElementIds;
@@ -137,7 +130,7 @@ export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targ
   // 👉 방향키 keydown → transform 적용
   const handleKeydownArrow = (e: KeyboardEvent) => {
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-      moveElement(e);
+      moveUpdateKeyboard(e);
     }
   };
 
@@ -145,11 +138,7 @@ export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targ
   const handleKeyupArrow = (e: KeyboardEvent) => {
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
       e.preventDefault();
-
-      if(isMoving.current) {
-        endMoveElement();
-        isMoving.current = false;
-      }
+      moveEnd();
     }
   };
 
@@ -167,86 +156,5 @@ export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targ
   }, []);
 
 
-  const applyTransformTemp = () => {
-    selectedElementIdsRef.current.forEach(id => {
-      const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement;
-      const startPos = startPositionsRef.current[id];
-      el.style.transform = `translate(${startPos.transformX + currentDx.current}px, ${startPos.transformY + currentDy.current}px)`;
-    });
-  };
-
-  const clearTransformTemp = () => {
-    selectedElementIdsRef.current.forEach(id => {
-      const startPos = startPositionsRef.current[id];
-
-      const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement;
-      el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`
-
-      updateElementStyle(id, {
-        transformTranslateX: `${startPositionsRef.current[id].transformX}px`,
-        transformTranslateY: `${startPositionsRef.current[id].transformY}px`,
-      });
-    });
-  };
-
-
-  const startMoveElement = () => {
-    currentDx.current = 0;
-    currentDy.current = 0;
-    // 요소 시작 지점 
-    startPositionsRef.current = setStartPositions();
-      
-    selectedElementIdsRef.current.forEach(id => {
-      updateElementStyle(id, {
-        transformTranslateX: ``,
-        transformTranslateY: ``,
-      });
-    });
-  }
-
-  const moveElement = (e: KeyboardEvent) => {
-    // 요소 움직이기 시작
-    if(!isMoving.current) {
-      isMoving.current = true;
-      startMoveElement();
-    }
-
-    // 요소 움직이기 중
-    onMoveElement(e);
-  }
-
-  const onMoveElement = (e: KeyboardEvent) => {
-    getDistance(e);
-    applyTransformTemp();
-  }
-
-  const endMoveElement = () => {
-    updateElementPositions();
-    clearTransformTemp();
-  }
-
-  const getDistance = (e: KeyboardEvent) => {
-    if(e.key === "ArrowUp") {
-      currentDy.current += -1;
-    } else if(e.key === "ArrowDown") {
-      currentDy.current += 1;
-    } else if(e.key === "ArrowLeft") {
-      currentDx.current += -1;
-    } else if(e.key === "ArrowRight") {
-      currentDx.current += 1;
-    }
-  }
-
-  const updateElementPositions = () => {
-
-    const positionStyles = getCurrentPositions(
-      selectedElementIdsRef.current,
-      startPositionsRef.current,
-      currentDx.current,
-      currentDy.current
-    );
-
-    updateMultipleElementsStyle(positionStyles);
-  };
 
 }

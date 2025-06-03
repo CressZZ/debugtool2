@@ -4,6 +4,7 @@ import { getCurrentPositions, setStartPositions } from "./useStartPositions";
 import type { DebugElement } from "../types/elementTreeTypes";
 import { useElementTreeStore } from "../store/useElementTreeStore";
 import { selectedElementIdsSelector } from "../store/elementTreeSelectors";
+import { useMoveElement } from "./useMoveElement";
 
 export type movePosition = {
   marginLeft: number;
@@ -21,8 +22,6 @@ export function useMouseEventDebugComponentItem() {
   const selectElement = useElementTreeStore(state => state.selectElement);
   const selectOnlyElement = useElementTreeStore(state => state.selectOnlyElement);
   const unselectAllElement = useElementTreeStore(state => state.unselectAllElement);
-  const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
-  const updateElementStyle = useElementTreeStore(state => state.updateElementStyle);
 
   // 선택된 요소
   const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
@@ -35,15 +34,6 @@ export function useMouseEventDebugComponentItem() {
   const isMouseDownning = useRef(false);
   const isMoving = useRef(false);
 
-  // 마우스 위치
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const currentDx = useRef(0);
-  const currentDy = useRef(0);
-
-  // 요소 시작 위치
-  const startPositionsRef = useRef<Record<string, movePosition>>({});
-
   // 선택된 요소 업데이트
   // 실시간 업데이트를 위해 Ref 사용, 사용안하면 useMouseEventDebugComponentItem 호출시 마다 
   // 생성된 값을 클로저로 참조하기 때문에 값이 변경되지 않음
@@ -51,6 +41,9 @@ export function useMouseEventDebugComponentItem() {
     selectedElementIdsRef.current = selectedElementIds;
   }, [selectedElementIds]);
 
+
+  const { moveStartMouse, moveEnd } = useMoveElement();
+  
   // --- 기능 함수 쪼개기 ---
 
   // 마우스 다운 했을때 선택 처리
@@ -85,50 +78,6 @@ export function useMouseEventDebugComponentItem() {
   };
 
 
-  const updateElementPositions = () => {
-
-    const positionStyles = getCurrentPositions(
-      selectedElementIdsRef.current,
-      startPositionsRef.current,
-      currentDx.current,
-      currentDy.current
-    );
-
-    updateMultipleElementsStyle(positionStyles);
-  };
-
-  const getDistance = (e: MouseEvent) => {
-    const dx = e.clientX - startX.current;
-    const dy = e.clientY - startY.current;
-
-    currentDx.current = dx;
-    currentDy.current = dy;
-  }
-
-
-  const applyTransformTemp = () => {
-    selectedElementIdsRef.current.forEach(id => {
-      const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement;
-      const startPos = startPositionsRef.current[id];
-      el.style.transform = `translate(${startPos.transformX + currentDx.current}px, ${startPos.transformY + currentDy.current}px)`;
-    });
-  };
-
-  const clearTransformTemp = () => {
-    selectedElementIdsRef.current.forEach(id => {
-      const startPos = startPositionsRef.current[id];
-
-      const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement;
-      el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`
-
-      updateElementStyle(id, {
-        transformTranslateX: `${startPositionsRef.current[id].transformX}px`,
-        transformTranslateY: `${startPositionsRef.current[id].transformY}px`,
-      });
-    });
-  };
-
-
   // --- 핸들러 ---
   const handleMouseDown = (e: React.MouseEvent, element: DebugElement) => {
     if(!element) return;
@@ -145,64 +94,24 @@ export function useMouseEventDebugComponentItem() {
   };
 
 
-  const startMoveElement = (e: MouseEvent) => {
-
-    // 마우스 클릭 시작 지점
-    startX.current = e.clientX;
-    startY.current = e.clientY;
-    currentDx.current = 0;
-    currentDy.current = 0;
-
-    // 요소 시작 지점 
-    startPositionsRef.current = setStartPositions();
-      
-    selectedElementIdsRef.current.forEach(id => {
-      updateElementStyle(id, {
-        transformTranslateX: ``,
-        transformTranslateY: ``,
-      });
-    });
-  }
-  
   const handleMouseMove = (e: MouseEvent) => {
     if (!isMouseDownning.current || !selectedElementIdsRef.current.length || !currentTargetElementRef.current) return;
 
+    isMoving.current = true;
+
     // 요소 움직이기
-    moveElement(e)
+    moveStartMouse(e)
   };
 
-  const moveElement = (e: MouseEvent) => {
-    // 요소 움직이기 시작
-    if(!isMoving.current) {
-      isMoving.current = true;
-      startMoveElement(e);
-    }
-
-    // 요소 움직이기 중
-    onMoveElement(e);
-  }
-
-  const onMoveElement = (e: MouseEvent) => {
-    getDistance(e);
-    applyTransformTemp();
-  }
-
-  const endMoveElement = () => {
-    updateElementPositions();
-    clearTransformTemp();
-  }
 
   const handleMouseUp = (e: MouseEvent) => {
     if (!currentTargetElementRef.current) return;
 
     selectTargetAtUp(e, currentTargetElementRef.current);
-
-    if(isMoving.current) {
-      endMoveElement();
-      isMoving.current = false;
-    }
+    moveEnd();
 
     isMouseDownning.current = false;
+    isMoving.current = false;
     currentTargetElementRef.current = null;
         
     window.removeEventListener("mousemove", handleMouseMove);
