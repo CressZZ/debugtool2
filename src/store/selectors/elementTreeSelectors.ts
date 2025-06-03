@@ -1,4 +1,4 @@
-import type { ElementTreeState } from "./useElementTreeStore";
+import type { ElementTreeState } from "../useElementTreeStore";
 
 export const selectedElementsSelector = (state: ElementTreeState) =>
   Object.values(state.elementMap).filter(el => el.selected);

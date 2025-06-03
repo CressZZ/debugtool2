@@ -9,22 +9,18 @@ import { useKeyEventWindow } from "../../hooks/useKeyEventWindow";
 import { useElementTreeStore } from "../../store/useElementTreeStore";
 import { DebugBackground } from "../DebugBackground";
 import { DebugControlPanel } from "../DebugControlPanel";
+import { useKitDebugOptionsStore } from "../../store/useKitDebugOptionStore";
 
 type AppProps = {
-  targetSelector: string;
-  background: string;
-  extraTargetSelectors?: string[];
-  excludeTargetSelector?: string[];
+
   onExit: () => void;
-  positionStyleFilePath?: string;
+
 };
 
 function Debug({
-  targetSelector,
-  background,
-  excludeTargetSelector = [],
+
   onExit,
-  positionStyleFilePath,
+
 }: AppProps) {
   const elementMap  = useElementTreeStore(state => state.elementMap);
   const setElementMap = useElementTreeStore(state => state.setElementMap);
@@ -33,10 +29,12 @@ function Debug({
 
   const isMounted = useRef(false);
 
+  const options = useKitDebugOptionsStore(state => state.options);
+
   const setElementMapInit = () => {
     const ParsedElementTree = parseDomToTree(
-      document.querySelector(targetSelector)!,
-      excludeTargetSelector
+      document.querySelector(options.targetSelector)!,
+      options.excludeTargetSelector
     );
 
     setElementMap(
@@ -46,8 +44,9 @@ function Debug({
   }
 
   useEffect(() => {
-
-  }, [elementMap]);
+    resetElementMap();
+    setElementMapInit();
+  }, [options]);
 
   useEffect(() => {
     if (isMounted.current) return;
@@ -72,7 +71,7 @@ function Debug({
   }, []);
 
   // 키바인딩
-  useKeyEventWindow({targetSelector, positionStyleFilePath});
+  useKeyEventWindow({targetSelector: options.targetSelector, positionStyleFilePath: options.positionStyleFilePath});
 
   useDebugerWrapperStyle();
 
@@ -95,7 +94,7 @@ function Debug({
 
   return (
     <>
-      <DebugBackground backgroundImage={background} />
+      <DebugBackground backgroundImage={options.background} />
       <DebugComponent />
       <DebugControlPanel onExit={onExit} />
     </>

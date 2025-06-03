@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { getCurrentPositions, setStartPositions } from "./useStartPositions";
 import { useElementTreeStore } from "../store/useElementTreeStore";
 import { useShallow } from "zustand/shallow";
-import { selectedElementIdsSelector } from "../store/elementTreeSelectors";
+import { selectedElementIdsSelector } from "../store/selectors/elementTreeSelectors";
 import type { movePosition } from "./useMouseEventDebugComponentItem";
 
 export function useMoveElement() {

@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { useShallow } from "zustand/shallow";
 import { useMouseEventDebugComponentItem } from "../../hooks/useMouseEventDebugComponentItem";
-import { makeElementsByElementIdSelector } from "../../store/elementTreeSelectors";
+import { makeElementsByElementIdSelector } from "../../store/selectors/elementTreeSelectors";
 import { useElementTreeStore } from "../../store/useElementTreeStore";
 import { type DebugElement } from "../../types/elementTreeTypes";
 

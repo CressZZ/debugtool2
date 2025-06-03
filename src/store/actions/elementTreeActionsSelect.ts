@@ -1,7 +1,7 @@
 import type { StoreApi } from 'zustand';
-import type { DebugElement, ElementId } from '../types/elementTreeTypes';
-import { updateAncestorDescendantFlags } from './elementTreeUtils';
-import type { StoreType } from './useElementTreeStore';
+import type { DebugElement, ElementId } from '../../types/elementTreeTypes';
+import { updateAncestorDescendantFlags } from '../utils/elementTreeUtils';
+import type { StoreType } from '../useElementTreeStore';
 
 
 export type ElementTreeActionsSelect = {

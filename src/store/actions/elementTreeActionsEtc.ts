@@ -1,7 +1,7 @@
 import type { StoreApi } from 'zustand';
-import type { ElementId, ElementMap } from '../types/elementTreeTypes';
-import { saveToHistory } from './elementTreeUtils';
-import type { ElementTreeState, StoreType } from './useElementTreeStore';
+import type { ElementId, ElementMap } from '../../types/elementTreeTypes';
+import { saveToHistory } from '../utils/elementTreeUtils';
+import type { ElementTreeState, StoreType } from '../useElementTreeStore';
 
 export type ElementTreeActionsEtc = {
   resetElementMap: () => void;

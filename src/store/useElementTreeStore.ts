@@ -2,10 +2,10 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { ElementId, ElementMap } from '../types/elementTreeTypes';
-import { createElementTreeActionsEtc, type ElementTreeActionsEtc } from './elementTreeActionsEtc';
-import { createElementTreeActionsHistory, type ElementTreeActionsHistory } from './elementTreeActionsHistory';
-import { createElementTreeActionsSelect, type ElementTreeActionsSelect } from './elementTreeActionsSelect';
-import { createElementTreeActionsStyle, type ElementTreeActionsStyle } from './elementTreeActionsStyle';
+import { createElementTreeActionsEtc, type ElementTreeActionsEtc } from './actions/elementTreeActionsEtc';
+import { createElementTreeActionsHistory, type ElementTreeActionsHistory } from './actions/elementTreeActionsHistory';
+import { createElementTreeActionsSelect, type ElementTreeActionsSelect } from './actions/elementTreeActionsSelect';
+import { createElementTreeActionsStyle, type ElementTreeActionsStyle } from './actions/elementTreeActionsStyle';
 
 // --- Store ---
 export type History = {
@@ -37,7 +37,9 @@ export const useElementTreeStore = create<StoreType>()(
     ...createElementTreeActionsStyle(set),
     ...createElementTreeActionsHistory(set),
 
-  })))
+  })),
+  { name: "ElementTreeStore" }  // ⭐️ devtools 패널에서 이름으로 보임
+),
 );
 
 

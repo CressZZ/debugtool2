@@ -1,6 +1,6 @@
 import type { StoreApi } from 'zustand';
-import { saveCurrentToFuture } from './elementTreeUtils';
-import type { ElementTreeState, StoreType } from './useElementTreeStore';
+import { saveCurrentToFuture } from '../utils/elementTreeUtils';
+import type { ElementTreeState, StoreType } from '../useElementTreeStore';
 
 export type ElementTreeActionsHistory = {
   undo: () => void;

@@ -4,13 +4,7 @@ import { Starter } from "./component/Starter";
 import type { KitDebgOptions } from "./main";
 import { useElementTreeStore } from "./store/useElementTreeStore";
 
-export function App({
-  targetSelector,
-  background,
-  extraTargetSelectors,
-  excludeTargetSelector,
-  positionStyleFilePath,
-}:KitDebgOptions) {
+export function App() {
   const [isRunning, setIsRunning] = useState(true);
   const resetElementTree = useElementTreeStore((state) => state.reset);
   
@@ -23,12 +17,9 @@ return (
   <>
   {isRunning ? (
     <Debug
-      targetSelector={targetSelector}
-      background={background}
-      extraTargetSelectors={extraTargetSelectors}
-      excludeTargetSelector={excludeTargetSelector}
+ 
       onExit={onExit}
-      positionStyleFilePath={positionStyleFilePath}
+
     />
   ) : (
     <Starter onClick={() => {

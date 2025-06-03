@@ -1,5 +1,5 @@
-import type { DebugElement, ElementMap } from "../types/elementTreeTypes";
-import type { History } from "./useElementTreeStore";
+import type { DebugElement, ElementMap } from "../../types/elementTreeTypes";
+import type { History } from "../useElementTreeStore";
 
 // --- Helper ---
 export function saveToHistory(state: { history: History; elementMap: ElementMap }, max = 200) {

@@ -146,11 +146,11 @@
   <script type="module" src="/src/main.tsx"></script>
   <script>
     window.addEventListener('load', () => {
-      KitPositionDebugTool({
-      targetSelector: [ '.debugWrapper'],
-      background: '/back.webp',
-      excludeTargetSelector: ['.kit-page__bg', '.kit-video']
-    })
+      window.kitDebug = KitPositionDebugTool({
+        targetSelector: [ '.debugWrapper'],
+        background: '/back.webp',
+        excludeTargetSelector: ['.kit-page__bg', '.kit-video']
+      })
     })
 
   </script>

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useShallow } from 'zustand/shallow';
 
-import { selectedElementIdsSelector, selectedElementsSelector } from "../store/elementTreeSelectors";
+import { selectedElementIdsSelector, selectedElementsSelector } from "../store/selectors/elementTreeSelectors";
 import { useElementTreeStore } from "../store/useElementTreeStore";
 
 import {

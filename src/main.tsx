@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import "./index.css";
 import { useElementTreeStore } from "./store/useElementTreeStore";
+import { useKitDebugOptionsStore } from "./store/useKitDebugOptionStore";
 
 export type KitDebgOptions = {
   targetSelector: string;
@@ -33,28 +34,41 @@ export function kitDebug({
   const appRoot = createRoot(appTarget);
   const resetElementTree = useElementTreeStore.getState().reset;
 
+
+  // ✅ 옵션을 store 에 주입
+  const setOptions = useKitDebugOptionsStore.getState().setOptions;
+  setOptions({
+    targetSelector,
+    background,
+    extraTargetSelectors,
+    excludeTargetSelector,
+    positionStyleFilePath,
+  });
+  
+
   console.log("mount kitDebug");
+  
   const unMount = () => {
     console.log("unMount kitDebug");
     resetElementTree();
     appRoot.unmount();
   }
 
+  // ✅ 반환 객체에서 updateOptions 제공
+  const updateOptions = (newOptions: Partial<KitDebgOptions>) => {
+    console.log("updateOptions", newOptions);
+    useKitDebugOptionsStore.getState().setOptions(newOptions);
+  };
+
   // Starter 렌더 (버튼만 body 포탈)
   appRoot.render(
     <StrictMode>
-      <App
-        targetSelector={targetSelector}
-        background={background}
-        extraTargetSelectors={extraTargetSelectors}
-        excludeTargetSelector={excludeTargetSelector}
-        positionStyleFilePath={positionStyleFilePath}
-      />
+      <App />
     </StrictMode>
   );
 
   return {
-    unMount,
+    unMount,updateOptions
   }
 }
 window.KitPositionDebugTool = kitDebug;
