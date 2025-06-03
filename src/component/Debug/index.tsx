@@ -31,8 +31,6 @@ function Debug({
   const resetElementMap = useElementTreeStore(state => state.resetElementMap);
   const history = useElementTreeStore(state => state.history);
 
- console.log("history", history);
-
   const isMounted = useRef(false);
 
   const setElementMapInit = () => {

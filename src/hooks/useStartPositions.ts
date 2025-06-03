@@ -94,7 +94,7 @@ export function getMovePosition(
 ) {
   const { marginLeft, marginTop, transformX, transformY } = startPosition;
   if (positionType === 'margin') {
-console.log(transformY, transformX);
+
     return {
       marginLeft: `${marginLeft + dx}px`,
       marginTop: `${marginTop + dy}px`,

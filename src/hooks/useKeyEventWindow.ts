@@ -25,17 +25,17 @@ export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targ
   const redo = useElementTreeStore(state => state.redo);
 
   const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
-  const moveTargetElementsRef = useRef<HTMLElement[]>([]);
 
+  const updateElementStyle = useElementTreeStore(state => state.updateElementStyle);
 
   // let startPositions: Record<string, movePosition> = {};
   const startPositionsRef = useRef<Record<string, movePosition>>({});
-  const isKeydownArrowing = useRef(false);
+  const isMoving = useRef(false);
   const selectedElementIdsRef = useRef<string[]>([]);
 
   // 누적 이동값 저장용 ref
-  const moveDeltaRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
-
+  const currentDx = useRef(0);
+  const currentDy = useRef(0);
 
   // Keep selectedElementIds in ref
   useEffect(() => {
@@ -137,64 +137,8 @@ export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targ
   // 👉 방향키 keydown → transform 적용
   const handleKeydownArrow = (e: KeyboardEvent) => {
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-
-
-
-      if(!isKeydownArrowing.current){
-        isKeydownArrowing.current = true;
-        startPositionsRef.current = setStartPositions();
-
-        moveTargetElementsRef.current = selectedElementIdsRef.current.map(id => {
-          return document.querySelector(`[data-id="${id}"]`) as HTMLElement;
-        }).filter(Boolean);
-
-        // selectedElementIdsRef.current = selectedElementIdsSelector(useElementTreeStore.getState());
-      }
-
-      e.preventDefault();
-
-
-      const isMeta = e.metaKey || e.ctrlKey;
-
-      const deltaX = (e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0) * (isMeta ? 100 : 1);
-      const deltaY = (e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0) * (isMeta ? 100 : 1);
-
-      // if(isMeta) {
-      //   window.addEventListener("keydown", (e) => {
-      //     if (!(e.metaKey || e.ctrlKey) || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-      //       // metaKey 가 풀린 상태 → 강제 finalize
-      //       handleCancelArrowKey();
-      //     }
-      //   });
-      // }
-
-      // 누적 이동값 업데이트
-      moveDeltaRef.current.dx += deltaX;
-      moveDeltaRef.current.dy += deltaY;
-
-
-      // DOM transform 임시 적용
-      console.log("deltaX", deltaX, deltaY);
-      applyTransformToTargets();
+      moveElement(e);
     }
-  };
-
-  const handleCancelArrowKey = () => {
-    const positionStyles = getCurrentPositions(
-      selectedElementIdsRef.current,
-      startPositionsRef.current,
-      moveDeltaRef.current.dx,
-      moveDeltaRef.current.dy
-    );
-  
-    updateMultipleElementsStyle(positionStyles);
-
-    // 누적값 초기화
-    moveDeltaRef.current = { dx: 0, dy: 0 };
-
-    clearTransform();
-
-    isKeydownArrowing.current = false;
   };
 
   // 👉 방향키 keyup → store 업데이트
@@ -202,8 +146,10 @@ export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targ
     if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
       e.preventDefault();
 
-
-      handleCancelArrowKey();
+      if(isMoving.current) {
+        endMoveElement();
+        isMoving.current = false;
+      }
     }
   };
 
@@ -220,22 +166,87 @@ export function useKeyEventWindow({targetSelector, positionStyleFilePath}: {targ
     };
   }, []);
 
-  const applyTransformToTargets = () => {
-    moveTargetElementsRef.current.forEach(el => {
-      const elementId = el.getAttribute("data-id")!;
-      const startPos = startPositionsRef.current[elementId];
-      
-      el.style.transform = `translate(${startPos.transformX + moveDeltaRef.current.dx}px, ${startPos.transformY + moveDeltaRef.current.dy}px)`;
+
+  const applyTransformTemp = () => {
+    selectedElementIdsRef.current.forEach(id => {
+      const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement;
+      const startPos = startPositionsRef.current[id];
+      el.style.transform = `translate(${startPos.transformX + currentDx.current}px, ${startPos.transformY + currentDy.current}px)`;
     });
   };
-  
-  const clearTransform = () => {
-    moveTargetElementsRef.current.forEach(el => {
-      const startPos = startPositionsRef.current[el.getAttribute("data-id")!];
-      el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`;
-    });
 
-    moveTargetElementsRef.current = [];
+  const clearTransformTemp = () => {
+    selectedElementIdsRef.current.forEach(id => {
+      const startPos = startPositionsRef.current[id];
+
+      const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement;
+      el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`
+
+      updateElementStyle(id, {
+        transformTranslateX: `${startPositionsRef.current[id].transformX}px`,
+        transformTranslateY: `${startPositionsRef.current[id].transformY}px`,
+      });
+    });
+  };
+
+
+  const startMoveElement = () => {
+    currentDx.current = 0;
+    currentDy.current = 0;
+    // 요소 시작 지점 
+    startPositionsRef.current = setStartPositions();
+      
+    selectedElementIdsRef.current.forEach(id => {
+      updateElementStyle(id, {
+        transformTranslateX: ``,
+        transformTranslateY: ``,
+      });
+    });
+  }
+
+  const moveElement = (e: KeyboardEvent) => {
+    // 요소 움직이기 시작
+    if(!isMoving.current) {
+      isMoving.current = true;
+      startMoveElement();
+    }
+
+    // 요소 움직이기 중
+    onMoveElement(e);
+  }
+
+  const onMoveElement = (e: KeyboardEvent) => {
+    getDistance(e);
+    applyTransformTemp();
+  }
+
+  const endMoveElement = () => {
+    updateElementPositions();
+    clearTransformTemp();
+  }
+
+  const getDistance = (e: KeyboardEvent) => {
+    if(e.key === "ArrowUp") {
+      currentDy.current += -1;
+    } else if(e.key === "ArrowDown") {
+      currentDy.current += 1;
+    } else if(e.key === "ArrowLeft") {
+      currentDx.current += -1;
+    } else if(e.key === "ArrowRight") {
+      currentDx.current += 1;
+    }
+  }
+
+  const updateElementPositions = () => {
+
+    const positionStyles = getCurrentPositions(
+      selectedElementIdsRef.current,
+      startPositionsRef.current,
+      currentDx.current,
+      currentDy.current
+    );
+
+    updateMultipleElementsStyle(positionStyles);
   };
 
 }

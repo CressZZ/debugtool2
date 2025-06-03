@@ -33,7 +33,7 @@ export function useMouseEventDebugComponentItem() {
 
   // 마우스 상태
   const isMouseDownning = useRef(false);
-  const isMouseMoving = useRef(false);
+  const isMoving = useRef(false);
 
   // 마우스 위치
   const startX = useRef(0);
@@ -79,7 +79,7 @@ export function useMouseEventDebugComponentItem() {
     const isCtrlPressed = e.ctrlKey;
 
     // 움직였던게 아니라면, 멀티 선택 요소 해제하하고 하나만 선택
-    if (!(isMetaPressed || isCtrlPressed) && !isMouseMoving.current) {
+    if (!(isMetaPressed || isCtrlPressed) && !isMoving.current) {
       selectOnlyElement(element.id);
     }
   };
@@ -97,7 +97,7 @@ export function useMouseEventDebugComponentItem() {
     updateMultipleElementsStyle(positionStyles);
   };
 
-  const getMosuePosition = (e: MouseEvent) => {
+  const getDistance = (e: MouseEvent) => {
     const dx = e.clientX - startX.current;
     const dy = e.clientY - startY.current;
 
@@ -144,13 +144,8 @@ export function useMouseEventDebugComponentItem() {
     window.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleMouseUpSelect = (e: MouseEvent) => {
-    if (!currentTargetElementRef.current) return;
-    selectTargetAtUp(e, currentTargetElementRef.current);
-  }
 
-  const startMove = (e: MouseEvent) => {
-    isMouseMoving.current = true;
+  const startMoveElement = (e: MouseEvent) => {
 
     // 마우스 클릭 시작 지점
     startX.current = e.clientX;
@@ -172,19 +167,27 @@ export function useMouseEventDebugComponentItem() {
   const handleMouseMove = (e: MouseEvent) => {
     if (!isMouseDownning.current || !selectedElementIdsRef.current.length || !currentTargetElementRef.current) return;
 
-    if(!isMouseMoving.current) {
-      startMove(e);
-    }
-
-    onMove(e);
+    // 요소 움직이기
+    moveElement(e)
   };
 
-  const onMove = (e: MouseEvent) => {
-    getMosuePosition(e);
+  const moveElement = (e: MouseEvent) => {
+    // 요소 움직이기 시작
+    if(!isMoving.current) {
+      isMoving.current = true;
+      startMoveElement(e);
+    }
+
+    // 요소 움직이기 중
+    onMoveElement(e);
+  }
+
+  const onMoveElement = (e: MouseEvent) => {
+    getDistance(e);
     applyTransformTemp();
   }
 
-  const endMove = () => {
+  const endMoveElement = () => {
     updateElementPositions();
     clearTransformTemp();
   }
@@ -194,16 +197,16 @@ export function useMouseEventDebugComponentItem() {
 
     selectTargetAtUp(e, currentTargetElementRef.current);
 
-    if(isMouseMoving.current) {
-      endMove();
+    if(isMoving.current) {
+      endMoveElement();
+      isMoving.current = false;
     }
-    
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
 
     isMouseDownning.current = false;
-    isMouseMoving.current = false;
     currentTargetElementRef.current = null;
+        
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
   };
 
   // --- cleanup ---
