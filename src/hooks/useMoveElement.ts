@@ -16,7 +16,9 @@ export function useMoveElement() {
   const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
   const selectedElementIdsRef = useRef<string[]>([]);
 
-  // 🚩 selectedElementIds 를 최신 상태 유지 (window 이벤트 핸들러에서도 안전하게 사용)
+  // selectedElementIds 를 최신 상태 유지 (window 이벤트 핸들러에서도 안전하게 사용)
+  // 왜냐하면 selectedElementIds만 쓰면 useMoveElement() 호출시 생성된 selectedElementIds를 
+  // 클로저로 참조하기 때문에 값이 변경되지 않음
   useEffect(() => {
     selectedElementIdsRef.current = selectedElementIds;
   }, [selectedElementIds]);
@@ -29,8 +31,8 @@ export function useMoveElement() {
     isMoving: false,  // 현재 이동 중인지 여부
     dx: 0,            // 누적 이동 거리 (X)
     dy: 0,            // 누적 이동 거리 (Y)
-    startX: 0,        // 마우스 시작 위치 (X)
-    startY: 0,        // 마우스 시작 위치 (Y)
+    startClientX: 0,        // 마우스 시작 위치 (X)
+    startClientY: 0,        // 마우스 시작 위치 (Y)
   });
 
   // --- 이동 준비 ---
@@ -42,11 +44,12 @@ export function useMoveElement() {
 
     // 마우스 이동 시 시작 좌표 기록
     if (type === "mouse" && payload) {
-      moveState.current.startX = payload.x;
-      moveState.current.startY = payload.y;
+      moveState.current.startClientX = payload.x;
+      moveState.current.startClientY = payload.y;
     }
 
     // Transform 초기화
+    // ************** 이거 때문에 죽는줄 알았음. 이거 안해주면, component는 상태가 변경되지 않아다고 판단하여 원래 위치로 되돌아가지 않음. ***********
     selectedElementIdsRef.current.forEach(id => {
       updateElementStyle(id, {
         transformTranslateX: ``,
@@ -66,8 +69,8 @@ export function useMoveElement() {
     }
 
     // 현재 이동 거리 계산
-    moveState.current.dx = e.clientX - moveState.current.startX;
-    moveState.current.dy = e.clientY - moveState.current.startY;
+    moveState.current.dx = e.clientX - moveState.current.startClientX;
+    moveState.current.dy = e.clientY - moveState.current.startClientY;
 
     // Transform 적용
     applyTransformTemp();
@@ -135,7 +138,7 @@ export function useMoveElement() {
       // 원래 위치로 되돌림
       el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`;
 
-      // store 에 원복
+      // store 에 원복 
       updateElementStyle(id, {
         transformTranslateX: `${startPos.transformX}px`,
         transformTranslateY: `${startPos.transformY}px`,
