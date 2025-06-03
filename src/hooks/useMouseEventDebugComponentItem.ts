@@ -14,6 +14,7 @@ export type movePosition = {
 };
 
 export function useMouseEventDebugComponentItem() {
+  // 루트 요소 아이디
   const rootElementId = useElementTreeStore(state => state.rootElementId);
 
   // 액션
@@ -21,200 +22,188 @@ export function useMouseEventDebugComponentItem() {
   const selectOnlyElement = useElementTreeStore(state => state.selectOnlyElement);
   const unselectAllElement = useElementTreeStore(state => state.unselectAllElement);
   const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
+  const updateElementStyle = useElementTreeStore(state => state.updateElementStyle);
 
   // 선택된 요소
   const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
-  const selectedElementIdsRef = useRef<string[]>([]);
+  const selectedElementIdsRef = useRef<string[]>([]); 
 
   // 타겟 REF
-  const targetElementRef = useRef<DebugElement | null>(null);
-  const moveTargetElementsRef = useRef<HTMLElement[]>([]);
+  const currentTargetElementRef = useRef<DebugElement | null>(null);
 
-  
+  // 마우스 상태
   const isMouseDownning = useRef(false);
   const isMouseMoving = useRef(false);
 
+  // 마우스 위치
   const startX = useRef(0);
   const startY = useRef(0);
   const currentDx = useRef(0);
   const currentDy = useRef(0);
 
+  // 요소 시작 위치
   const startPositionsRef = useRef<Record<string, movePosition>>({});
 
-  // Keep selectedElementIds in ref
+  // 선택된 요소 업데이트
+  // 실시간 업데이트를 위해 Ref 사용, 사용안하면 useMouseEventDebugComponentItem 호출시 마다 
+  // 생성된 값을 클로저로 참조하기 때문에 값이 변경되지 않음
   useEffect(() => {
     selectedElementIdsRef.current = selectedElementIds;
   }, [selectedElementIds]);
 
   // --- 기능 함수 쪼개기 ---
 
-  const selectTargetElement = (e: React.MouseEvent, element: DebugElement) => {
+  // 마우스 다운 했을때 선택 처리
+  const selectTargetAtDown = (e: React.MouseEvent) => {
     const isMetaPressed = e.metaKey;
     const isCtrlPressed = e.ctrlKey;
 
     if (isMetaPressed || isCtrlPressed) {
-      selectElement(element.id);
+      selectElement(currentTargetElementRef.current!.id);
     } else {
-      if (!element.selected) {
-        selectOnlyElement(element.id);
+      if (!currentTargetElementRef.current!.selected) {
+        selectOnlyElement(currentTargetElementRef.current!.id);
       }
     }
 
-    if (rootElementId.includes(element.id)) {
+    // [TODO] 루트 요소 선택시 모두 선택 해제
+    if (rootElementId.includes(currentTargetElementRef.current!.id)) {
       unselectAllElement();
     }
   };
 
-  const prepareMoveTargets = (e: React.MouseEvent, element: DebugElement) => {
-    if (rootElementId.includes(element.id)) {
-      return;
-    }
 
-    let moveTargetElementIds = selectedElementIdsRef.current;
-
-    console.log("moveTargetElementIds", moveTargetElementIds);
-    if(moveTargetElementIds.length < 1) {
-      return;
-    }
-
+  // 마우스 업 했을때 선택처리
+  const selectTargetAtUp = (e: MouseEvent, element: DebugElement) => {
     const isMetaPressed = e.metaKey;
     const isCtrlPressed = e.ctrlKey;
 
-    if (isMetaPressed || isCtrlPressed) {
-      moveTargetElementIds = [...moveTargetElementIds, element.id];
-    } else {
-      if (!element.selected) {
-        moveTargetElementIds = [element.id];
-      }
-    }
-
-    moveTargetElementsRef.current = moveTargetElementIds.map(id => {
-      return document.querySelector(`[data-id="${id}"]`) as HTMLElement;
-    }).filter(Boolean);
-
-    isMouseDownning.current = true;
-    startX.current = e.clientX;
-    startY.current = e.clientY;
-    currentDx.current = 0;
-    currentDy.current = 0;
-
-    startPositionsRef.current = setStartPositions();
-
-
-    const updateElementStyle=useElementTreeStore.getState().updateElementStyle;
-      
-    moveTargetElementIds.forEach(id => {
-      updateElementStyle(id, {
-        transformTranslateX: ``,
-        transformTranslateY: ``,
-      });
-    });
-
-
-    console.log("startPositionsRef.current", startPositionsRef.current);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  };
-
-
-
-  const finalizeSelection = (e: MouseEvent, element: DebugElement) => {
-    const isMetaPressed = e.metaKey;
-    const isCtrlPressed = e.ctrlKey;
-
+    // 움직였던게 아니라면, 멀티 선택 요소 해제하하고 하나만 선택
     if (!(isMetaPressed || isCtrlPressed) && !isMouseMoving.current) {
       selectOnlyElement(element.id);
     }
   };
 
+
   const updateElementPositions = () => {
-    const elementMap = useElementTreeStore.getState().elementMap;
-    const selectedElementIds = Object.values(elementMap).filter(el => el.selected).map(el => el.id);
 
     const positionStyles = getCurrentPositions(
-      selectedElementIds,
+      selectedElementIdsRef.current,
       startPositionsRef.current,
       currentDx.current,
       currentDy.current
     );
 
-    console.log("positionStyles", currentDx.current, currentDy.current);
     updateMultipleElementsStyle(positionStyles);
   };
 
-  const applyTransformToTargets = () => {
+  const getMosuePosition = (e: MouseEvent) => {
+    const dx = e.clientX - startX.current;
+    const dy = e.clientY - startY.current;
 
-    moveTargetElementsRef.current.forEach(el => {
-      const elementId = el.getAttribute("data-id")!;
-      const startPos = startPositionsRef.current[elementId];
-      
+    currentDx.current = dx;
+    currentDy.current = dy;
+  }
+
+
+  const applyTransformTemp = () => {
+    selectedElementIdsRef.current.forEach(id => {
+      const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement;
+      const startPos = startPositionsRef.current[id];
       el.style.transform = `translate(${startPos.transformX + currentDx.current}px, ${startPos.transformY + currentDy.current}px)`;
-  
-
     });
   };
 
-  const clearTransform = () => {
-    moveTargetElementsRef.current.forEach(el => {
-      const startPos = startPositionsRef.current[el.getAttribute("data-id")!];
-      el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`;
-    });
-
-    const updateElementStyle=useElementTreeStore.getState().updateElementStyle;
-      
+  const clearTransformTemp = () => {
     selectedElementIdsRef.current.forEach(id => {
+      const startPos = startPositionsRef.current[id];
+
+      const el = document.querySelector(`[data-id="${id}"]`) as HTMLElement;
+      el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`
 
       updateElementStyle(id, {
         transformTranslateX: `${startPositionsRef.current[id].transformX}px`,
         transformTranslateY: `${startPositionsRef.current[id].transformY}px`,
       });
     });
-
-
-    moveTargetElementsRef.current = [];
   };
+
 
   // --- 핸들러 ---
-
   const handleMouseDown = (e: React.MouseEvent, element: DebugElement) => {
-    targetElementRef.current = element;
+    if(!element) return;
+
+    isMouseDownning.current = true;
+    
+    currentTargetElementRef.current = element;
     e.stopPropagation();
 
-    selectTargetElement(e, element);
-    prepareMoveTargets(e, element);
+    selectTargetAtDown(e);
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isMouseDownning.current) return;
+  const handleMouseUpSelect = (e: MouseEvent) => {
+    if (!currentTargetElementRef.current) return;
+    selectTargetAtUp(e, currentTargetElementRef.current);
+  }
 
+  const startMove = (e: MouseEvent) => {
     isMouseMoving.current = true;
 
-    const dx = e.clientX - startX.current;
-    const dy = e.clientY - startY.current;
+    // 마우스 클릭 시작 지점
+    startX.current = e.clientX;
+    startY.current = e.clientY;
+    currentDx.current = 0;
+    currentDy.current = 0;
 
-    currentDx.current = dx;
-    currentDy.current = dy;
+    // 요소 시작 지점 
+    startPositionsRef.current = setStartPositions();
+      
+    selectedElementIdsRef.current.forEach(id => {
+      updateElementStyle(id, {
+        transformTranslateX: ``,
+        transformTranslateY: ``,
+      });
+    });
+  }
+  
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isMouseDownning.current || !selectedElementIdsRef.current.length || !currentTargetElementRef.current) return;
 
-    applyTransformToTargets();
-  };
-
-  const handleMouseUp = (e: MouseEvent) => {
-    if (!targetElementRef.current) return;
-
-    finalizeSelection(e, targetElementRef.current);
-
-    if (isMouseDownning.current) {
-      isMouseDownning.current = false;
-      isMouseMoving.current = false;
-
-      updateElementPositions();
-      clearTransform();
+    if(!isMouseMoving.current) {
+      startMove(e);
     }
 
+    onMove(e);
+  };
+
+  const onMove = (e: MouseEvent) => {
+    getMosuePosition(e);
+    applyTransformTemp();
+  }
+
+  const endMove = () => {
+    updateElementPositions();
+    clearTransformTemp();
+  }
+
+  const handleMouseUp = (e: MouseEvent) => {
+    if (!currentTargetElementRef.current) return;
+
+    selectTargetAtUp(e, currentTargetElementRef.current);
+
+    if(isMouseMoving.current) {
+      endMove();
+    }
+    
     window.removeEventListener("mousemove", handleMouseMove);
     window.removeEventListener("mouseup", handleMouseUp);
 
-    targetElementRef.current = null;
+    isMouseDownning.current = false;
+    isMouseMoving.current = false;
+    currentTargetElementRef.current = null;
   };
 
   // --- cleanup ---
