@@ -57,7 +57,7 @@ export function kitDebug({
     unMount,
   }
 }
+window.KitPositionDebugTool = kitDebug;
 
 export default kitDebug;
-
 

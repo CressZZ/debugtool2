@@ -11,7 +11,7 @@ export function App({
   excludeTargetSelector,
   positionStyleFilePath,
 }:KitDebgOptions) {
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(true);
   const resetElementTree = useElementTreeStore((state) => state.reset);
   
   const onExit = () => {
