@@ -1,13 +1,13 @@
 import type { StoreApi } from 'zustand';
-import type { ElementId } from '../types/elementTreeTypes';
+import type { DebugElement, ElementId, ElementMap } from '../types/elementTreeTypes';
 import { saveToHistory } from './elementTreeUtils';
 import type { StoreType } from './useElementTreeStore';
 
 export type ElementTreeActionsStyle = {
-  updateMultipleElementsStyle: (updates: Record<string, Partial<CSSStyleDeclaration>>) => void;
+  updateMultipleElementsStyle: (updates: Record<string, Partial<DebugElement['style']>>) => void;
+  updateElementStyle: (elementId: ElementId, style: Partial<DebugElement['style']>) => void;
   updateElementPosition: (elementId: ElementId, x: number, y: number) => void;
   updateElementPositionType: (elementId: ElementId, positionType: 'margin' | 'transform') => void;
-  updateElementStyle: (elementId: ElementId, style: Partial<CSSStyleDeclaration>) => void;
 }
 
 export function createElementTreeActionsStyle(
@@ -16,7 +16,7 @@ export function createElementTreeActionsStyle(
   return {
 
 
-    updateMultipleElementsStyle: (updates: Record<string, Partial<CSSStyleDeclaration>>) => {
+    updateMultipleElementsStyle: (updates: Record<string, Partial<DebugElement['style']>>) => {
       set(state => {
         saveToHistory(state);
     
@@ -27,6 +27,14 @@ export function createElementTreeActionsStyle(
       });
     },
     
+    updateElementStyle: (elementId: ElementId, style: Partial<DebugElement['style']>) => {
+      set(state => {
+        saveToHistory(state)
+
+        Object.assign(state.elementMap[elementId].style, style);
+        return state;
+      });
+    },
     updateElementPosition: (elementId: ElementId, x: number, y: number) => {
       set(state => {
         saveToHistory(state);
@@ -55,14 +63,6 @@ export function createElementTreeActionsStyle(
       });
     },
 
-    updateElementStyle: (elementId: ElementId, style: Partial<CSSStyleDeclaration>) => {
-      set(state => {
-        saveToHistory(state)
-
-        Object.assign(state.elementMap[elementId].style, style);
-        return state;
-      });
-    },
     
 
   };

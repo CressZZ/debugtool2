@@ -15,18 +15,22 @@ export type movePosition = {
 
 export function useMouseEventDebugComponentItem() {
   const rootElementId = useElementTreeStore(state => state.rootElementId);
+
+  // 액션
   const selectElement = useElementTreeStore(state => state.selectElement);
   const selectOnlyElement = useElementTreeStore(state => state.selectOnlyElement);
   const unselectAllElement = useElementTreeStore(state => state.unselectAllElement);
   const updateMultipleElementsStyle = useElementTreeStore(state => state.updateMultipleElementsStyle);
 
-  // 선택된 용소
+  // 선택된 요소
   const selectedElementIds = useElementTreeStore(useShallow(selectedElementIdsSelector));
   const selectedElementIdsRef = useRef<string[]>([]);
 
+  // 타겟 REF
   const targetElementRef = useRef<DebugElement | null>(null);
   const moveTargetElementsRef = useRef<HTMLElement[]>([]);
 
+  
   const isMouseDownning = useRef(false);
   const isMouseMoving = useRef(false);
 
@@ -96,20 +100,23 @@ export function useMouseEventDebugComponentItem() {
 
     startPositionsRef.current = setStartPositions();
 
+
+    const updateElementStyle=useElementTreeStore.getState().updateElementStyle;
+      
+    moveTargetElementIds.forEach(id => {
+      updateElementStyle(id, {
+        transformTranslateX: ``,
+        transformTranslateY: ``,
+      });
+    });
+
+
     console.log("startPositionsRef.current", startPositionsRef.current);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
   };
 
-  const applyTransformToTargets = () => {
-    moveTargetElementsRef.current.forEach(el => {
-      const elementId = el.getAttribute("data-id")!;
-      const startPos = startPositionsRef.current[elementId];
-      
-      el.style.transform = `translate(${startPos.transformX + currentDx.current}px, ${startPos.transformY + currentDy.current}px)`;
-      
-    });
-  };
+
 
   const finalizeSelection = (e: MouseEvent, element: DebugElement) => {
     const isMetaPressed = e.metaKey;
@@ -135,11 +142,34 @@ export function useMouseEventDebugComponentItem() {
     updateMultipleElementsStyle(positionStyles);
   };
 
+  const applyTransformToTargets = () => {
+
+    moveTargetElementsRef.current.forEach(el => {
+      const elementId = el.getAttribute("data-id")!;
+      const startPos = startPositionsRef.current[elementId];
+      
+      el.style.transform = `translate(${startPos.transformX + currentDx.current}px, ${startPos.transformY + currentDy.current}px)`;
+  
+
+    });
+  };
+
   const clearTransform = () => {
     moveTargetElementsRef.current.forEach(el => {
       const startPos = startPositionsRef.current[el.getAttribute("data-id")!];
       el.style.transform = `translate(${startPos.transformX}px, ${startPos.transformY}px)`;
     });
+
+    const updateElementStyle=useElementTreeStore.getState().updateElementStyle;
+      
+    selectedElementIdsRef.current.forEach(id => {
+
+      updateElementStyle(id, {
+        transformTranslateX: `${startPositionsRef.current[id].transformX}px`,
+        transformTranslateY: `${startPositionsRef.current[id].transformY}px`,
+      });
+    });
+
 
     moveTargetElementsRef.current = [];
   };
