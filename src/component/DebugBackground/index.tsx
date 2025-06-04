@@ -2,12 +2,16 @@ import { useDebugBackgroundStore } from "../../store/useDebugBackgourndStore";
 
 export function DebugBackground({
   backgroundImage,
+  isMobile,
 }: {
   backgroundImage: string;
+  isMobile: boolean;
 }) {
 
   const opacity = useDebugBackgroundStore(state => state.opacity);
   const isInverted = useDebugBackgroundStore(state => state.isInverted);
+
+  const backgroundSize = isMobile ? "375px" : "1920px 1080px"; 
 
   return (
     <div
@@ -19,7 +23,7 @@ export function DebugBackground({
         height: "100%",
         backgroundImage: `url(${backgroundImage})`,
         backgroundPosition: "center",
-        backgroundSize: "1920px 1080px",
+        backgroundSize: backgroundSize,
         backgroundRepeat: "no-repeat",
         opacity: opacity,
         filter: isInverted ? "invert(1)" : "none",

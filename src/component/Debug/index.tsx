@@ -7,9 +7,9 @@ import throttle from "lodash.throttle";
 import { useDebugerWrapperStyle } from "../../hooks/useDebugerWrapperStyle";
 import { useKeyEventWindow } from "../../hooks/useKeyEventWindow";
 import { useElementTreeStore } from "../../store/useElementTreeStore";
+import { useKitDebugOptionsStore } from "../../store/useKitDebugOptionStore";
 import { DebugBackground } from "../DebugBackground";
 import { DebugControlPanel } from "../DebugControlPanel";
-import { useKitDebugOptionsStore } from "../../store/useKitDebugOptionStore";
 
 type AppProps = {
 
@@ -22,18 +22,18 @@ function Debug({
   onExit,
 
 }: AppProps) {
-  const elementMap  = useElementTreeStore(state => state.elementMap);
   const setElementMap = useElementTreeStore(state => state.setElementMap);
   const resetElementMap = useElementTreeStore(state => state.resetElementMap);
-  const history = useElementTreeStore(state => state.history);
 
   const isMounted = useRef(false);
 
   const options = useKitDebugOptionsStore(state => state.options);
 
   const setElementMapInit = () => {
+    if(!options.targetSelector[0]) return;
+    
     const ParsedElementTree = parseDomToTree(
-      document.querySelector(options.targetSelector)!,
+      document.querySelector(options.targetSelector[0])!,
       options.excludeTargetSelector
     );
 
@@ -71,7 +71,8 @@ function Debug({
   }, []);
 
   // 키바인딩
-  useKeyEventWindow({targetSelector: options.targetSelector, positionStyleFilePath: options.positionStyleFilePath});
+  useKeyEventWindow({targetSelector: options.targetSelector[0], positionStyleFilePath: options.positionStyleFilePath});
+
 
   useDebugerWrapperStyle();
 
@@ -94,7 +95,7 @@ function Debug({
 
   return (
     <>
-      <DebugBackground backgroundImage={options.background} />
+      <DebugBackground backgroundImage={options.background} isMobile={options.isMobile}/>
       <DebugComponent />
       <DebugControlPanel onExit={onExit} />
     </>

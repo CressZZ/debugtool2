@@ -25,7 +25,7 @@ export default defineConfig({
     cssCodeSplit: false, // ⭐️ 이거 추가!
     lib: {
       entry: "./src/main.tsx",
-      name: "KitPositionDebugTool",
+      name: "kitPositionDebugTool",
       fileName: "kitPositionDebugTool",
       formats: ["es", "umd"], // es: import 가능, umd: window 에도 사용 가능
     },

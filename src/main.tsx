@@ -3,24 +3,23 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import "./index.css";
 import { useElementTreeStore } from "./store/useElementTreeStore";
-import { useKitDebugOptionsStore } from "./store/useKitDebugOptionStore";
+import { useKitDebugOptionsStore, type KitDebugOptions } from "./store/useKitDebugOptionStore";
 
-export type KitDebgOptions = {
-  targetSelector: string;
-  background: string;
-  extraTargetSelectors?: string[];
-  excludeTargetSelector?: string[];
-  positionStyleFilePath?: string;
-};
+declare global {
+  interface Window {
+    KitPositionDebugTool: typeof kitDebug  ;
+  }
+}
 
 
 export function kitDebug({
-  targetSelector,
-  background,
-  extraTargetSelectors,
-  excludeTargetSelector,
-  positionStyleFilePath,
-}: KitDebgOptions) {
+  targetSelector = [""],
+  background = "",
+  extraTargetSelectors = [],
+  excludeTargetSelector = [],
+  positionStyleFilePath = "",
+  isMobile = false,
+}: Partial<KitDebugOptions> = {}) {
 
   // kitDebgRoot 없으면 자동 생성
   let appTarget = document.querySelector("#kitDebgRoot") as HTMLElement | null;
@@ -42,7 +41,8 @@ export function kitDebug({
     background,
     extraTargetSelectors,
     excludeTargetSelector,
-    positionStyleFilePath,
+    positionStyleFilePath,  
+    isMobile,
   });
   
 
@@ -55,7 +55,7 @@ export function kitDebug({
   }
 
   // ✅ 반환 객체에서 updateOptions 제공
-  const updateOptions = (newOptions: Partial<KitDebgOptions>) => {
+  const updateOptions = (newOptions: Partial<KitDebugOptions>) => {
     console.log("updateOptions", newOptions);
     useKitDebugOptionsStore.getState().setOptions(newOptions);
   };
@@ -71,7 +71,8 @@ export function kitDebug({
     unMount,updateOptions
   }
 }
-window.KitPositionDebugTool = kitDebug;
+
+// window.KitPositionDebugTool = kitDebug;
 
 export default kitDebug;
 

@@ -1,9 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useShallow } from 'zustand/shallow';
-import { getCurrentPositions, setStartPositions } from "./useStartPositions";
-import type { DebugElement } from "../types/elementTreeTypes";
-import { useElementTreeStore } from "../store/useElementTreeStore";
 import { selectedElementIdsSelector } from "../store/selectors/elementTreeSelectors";
+import { useElementTreeStore } from "../store/useElementTreeStore";
+import type { DebugElement } from "../types/elementTreeTypes";
 import { useMoveElement } from "./useMoveElement";
 
 export type movePosition = {

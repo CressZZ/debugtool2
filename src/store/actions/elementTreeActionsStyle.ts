@@ -1,7 +1,7 @@
 import type { StoreApi } from 'zustand';
-import type { DebugElement, ElementId, ElementMap } from '../../types/elementTreeTypes';
-import { saveToHistory } from '../utils/elementTreeUtils';
+import type { DebugElement, ElementId } from '../../types/elementTreeTypes';
 import type { StoreType } from '../useElementTreeStore';
+import { saveToHistory } from '../utils/elementTreeUtils';
 
 export type ElementTreeActionsStyle = {
   updateMultipleElementsStyle: (updates: Record<string, Partial<DebugElement['style']>>) => void;

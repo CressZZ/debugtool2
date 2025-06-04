@@ -49,4 +49,4 @@ function kitPositionDebugTool_middlewares(middlewares, devServer) {
 }
 
 
-module.exports = { kitPositionDebugTool_middlewares };
+module.exports =  kitPositionDebugTool_middlewares;

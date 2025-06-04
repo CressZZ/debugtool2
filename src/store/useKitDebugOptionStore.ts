@@ -3,11 +3,12 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 export type KitDebugOptions = {
-  targetSelector: string;
+  targetSelector: string[];
   background: string;
-  extraTargetSelectors?: string[];
-  excludeTargetSelector?: string[];
-  positionStyleFilePath?: string;
+  extraTargetSelectors: string[];
+  excludeTargetSelector: string[];
+  positionStyleFilePath: string;
+  isMobile: boolean;
 };
 
 type KitDebugOptionsStore = {
@@ -20,11 +21,12 @@ export const useKitDebugOptionsStore = create<KitDebugOptionsStore>()(
   devtools(
     (set) => ({
       options: {
-        targetSelector: "",
+        targetSelector: [''],
         background: "",
         extraTargetSelectors: [],
         excludeTargetSelector: [],
         positionStyleFilePath: "",
+        isMobile: false,
       },
       setOptions: (options) =>
         set((state) => ({
