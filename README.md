@@ -1,54 +1,74 @@
-# React + TypeScript + Vite
+# 개요
+특정 영역에 있는 relative, absolute, fixed 요소를 움직여
+margin-left, margin-top 값을 추출후
+positionStyleFilePath로 전달한 파일에 덮어 쓴다.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# 설치
+`npm i kit-position-debug-tool`
 
-Currently, two official plugins are available:
+# 사용법 
+## 옵션
+```ts
+type KitDebugOptions {
+  targetSelector: string[]; // 디버깅 대상 Wrapper
+  background: string; // 디버깅용 백그라운드
+  excludeTargetSelector: string[]; // 디버깅 대상에서 제외할 요소
+  positionStyleFilePath: string;  // 포지션 내용이 저장될 파일의 위치
+  isMobile: boolean; // 모바일 여부
+}
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
+## 메서드
 ```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
+// 디버깅 옵션 변경
+updateOptions = (newOptions: Partial<KitDebugOptions>) => void
+```
+
+
+# 적용 예시 (vue.config.js 기준)
+## devserve 미들웨어 추가 (positionStyleFilePath 파일 덮어쓰기용 (없어도 됨))
+```js
+// vue.config.js
+const kitPositionDebugTool_middlewares = require('kit-position-debug-tool/middleware');
+
+module.exports = defineConfig({
+	devServer: {
+		setupMiddlewares: kitPositionDebugTool_middlewares,
+  }
 })
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
+## debugTool 적용
 ```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+// main.js
+export let debugTool;
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+if (process.env.NODE_ENV === "development") {
+	debugTool = kitPositionDebugTool({
+		excludeTargetSelector: [".kit-page__bg", ".kit__copyright", ".kit-video__spinner", ".kit-page__section"],
+	});
+}
 ```
+
+## 섹션별로 debugTool 적용
+```vue
+// TheSection1.vue
+
+<script setup>
+import { debugTool } from "@/main";
+
+enterEnd() {
+  debugTool && debugTool.updateOptions({
+    background: `${kitStore.assetsPath}/main/debug.png`,
+    targetSelector: ['.section1'],
+    extraTargetSelectors: [],
+    positionStyleFilePath: `src/components/TheSection1_position.scss`,
+  })
+},
+</script>
+
+<style>
+  @use "./TheSection1_position.scss" as *;
+</style>
+```
+

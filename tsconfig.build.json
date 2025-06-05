@@ -1,0 +1,17 @@
+// tsconfig.build.json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler", // ✅ 안정적
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist/types",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true 
+  },
+  "include": ["src"]
+}

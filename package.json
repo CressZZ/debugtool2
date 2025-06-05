@@ -1,27 +1,34 @@
 {
-  "name": "debugtool4",
+  "name": "kit-position-debug-tool",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "main": "dist/kitPositionDebugTool.js",
+  "types": "dist/types/main.d.ts",
   "files": [
     "dist"
   ],
   "exports": {
     ".": {
-      "import": "./dist/kitPositionDebugTool.js",
-      "require": "./dist/kitPositionDebugTool.umd.cjs"
+      "import": {
+        "types": "./dist/types/main.d.ts",
+        "default": "./dist/kitPositionDebugTool.js"
+      },
+      "require": {
+        "types": "./dist/types/main.d.ts",
+        "default": "./dist/kitPositionDebugTool.umd.cjs"
+      }
     },
     "./middleware": {
-      "import": "./dist/middleware/middleware.js",
-      "require": "./dist/middleware/middleware.js"
+      "require": "./dist/middleware/index.cjs"
     }
   },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "tsc:build": "tsc --project tsconfig.build.json"
   },
   "dependencies": {
     "@redux-devtools/extension": "^3.3.0",

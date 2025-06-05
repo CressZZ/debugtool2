@@ -7,7 +7,7 @@ import { useKitDebugOptionsStore, type KitDebugOptions } from "./store/useKitDeb
 
 declare global {
   interface Window {
-    KitPositionDebugTool: typeof kitDebug  ;
+    kitPositionDebugTool: typeof kitDebug;
   }
 }
 
@@ -72,7 +72,7 @@ export function kitDebug({
   }
 }
 
-// window.KitPositionDebugTool = kitDebug;
+window.kitPositionDebugTool = kitDebug;
 
 export default kitDebug;
 
